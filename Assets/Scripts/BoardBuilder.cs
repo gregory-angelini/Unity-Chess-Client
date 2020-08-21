@@ -9,7 +9,7 @@ public class BoardBuilder : MonoBehaviour
     float length = 1.5f;
     Vector3 startPos = new Vector3(-5.25f, 0f, -5.25f);
     public Vector3[,] SquarePositions { get; private set; } = new Vector3[8, 8];
-    [SerializeField] FigureController figurePrefab;
+    //[SerializeField] FigureController figurePrefab;
 
     void Start()
     {
