@@ -83,22 +83,21 @@ public class DragAndDropController : MonoBehaviour
             args.startDragPos = startDragPos;
             args.endDragPos = endDragPos;
 
-            if ((int)startDragPos.x == (int)endDragPos.x &&
-                (int)startDragPos.y == (int)endDragPos.y)// no changes
+            if (Chess2DController.Instance.Chess.CanMove(draggedObject.GetComponent<Figure2D>().Id,
+                                                        (int)startDragPos.x, (int)startDragPos.y,
+                                                        (int)endDragPos.x, (int)endDragPos.y))
             {
-                Vector2 oldPos = Board2DBuilder.Instance.GetWorldPosOfSquare((int)startDragPos.x, (int)startDragPos.y);
-                draggedObject.GetComponent<Figure2D>().SetWorldPosition(oldPos);
-            }
-            else
-            {
-                // TODO: wrong move
-
                 string from = Chess.GetSquareName((int)startDragPos.x, (int)startDragPos.y);
                 string to = Chess.GetSquareName((int)endDragPos.x, (int)endDragPos.y);
                 char figure = Chess2DController.Instance.Chess.FigureAt((int)startDragPos.x, (int)startDragPos.y);
                 string fenMove = figure + from + to;
                 args.fenMove = fenMove;
                 args.result = true;
+            }
+            else
+            {
+                Vector2 oldPos = Board2DBuilder.Instance.GetWorldPosOfSquare((int)startDragPos.x, (int)startDragPos.y);
+                draggedObject.GetComponent<Figure2D>().SetWorldPosition(oldPos);
             }
             
             OnEndDrag?.Invoke(this, args);

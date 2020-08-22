@@ -42,7 +42,7 @@ public class Chess2DController : MonoBehaviour
     }
     public void ShowLegalMoves(Figure figure, int figureX, int figureY)
     {
-        Debug.Log($"{figure} in pos [{figureX}, {figureY}]");
+        //Debug.Log($"{figure} in pos [{figureX}, {figureY}]");
 
         HideMoves();
         int x, y;
@@ -51,16 +51,13 @@ public class Chess2DController : MonoBehaviour
         {
             if ((char)figure == move.Substring(0, 1)[0])// the same figure
             {
-                Debug.Log("ok figure");
                 Chess.GetSquarePos(move.Substring(1, 2), out x, out y);
                
                 if (figureX == x && figureY == y)// the same position
                 {
-                    Debug.Log("ok coord");
-
                     Chess.GetSquarePos(move.Substring(3, 2), out x, out y);
 
-                    if (Chess.FigureAt(x, y) != '.')// square is not empty
+                    if (Chess.FigureAt(x, y) != '.')// target square is not empty
                     {
                         ShowLegalSquare(x, y, false);
                     }
@@ -69,7 +66,6 @@ public class Chess2DController : MonoBehaviour
                         ShowLegalSquare(x, y, true);
                     }
                 }
-                else Debug.Log($"no coord: {x}, {y}");
             }
         }
     }
