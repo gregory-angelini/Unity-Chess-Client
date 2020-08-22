@@ -9,7 +9,7 @@ public class Board2DBuilder : MonoBehaviour
     public Vector2 BoardStartPos { get; private set; } = new Vector2(-415, -415);
     Figure2D[,] figures = new Figure2D[8, 8];
     public Vector2 SquareSize { get; private set; } = new Vector2(118f, 118f);
-    [SerializeField] Transform parent;
+    [SerializeField] Transform figureParent;
 
     void Awake()
     {
@@ -69,21 +69,34 @@ public class Board2DBuilder : MonoBehaviour
         }
     }
 
+    public void Restart()
+    {
+        Chess2DController.Instance.Restart();
+
+        UpdateBoard();
+
+        Debug.Log("Restart game");
+    }
 
     void Build()
     {
+        Debug.Log("New game");
+
         Vector2 pos;
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)
             {
-                char figureId = Chess2DController.Instance.Chess.FigureAt(x, y);
-
-                if (figureId == '.')
+                // clear the square 
+                if (figures[x, y] != null)
                 {
+                    Destroy(figures[x, y].gameObject);
                     figures[x, y] = null;
                 }
-                else
+
+                char figureId = Chess2DController.Instance.Chess.FigureAt(x, y);
+
+                if (figureId != '.')
                 {
                     pos = BoardStartPos + new Vector2(x * SquareSize.x, y * SquareSize.y);
                     Figure2D figureObj = CreateFigure(figureId, pos, x, y);
@@ -96,7 +109,7 @@ public class Board2DBuilder : MonoBehaviour
     Figure2D CreateFigure(char figureId, Vector2 pos, int x, int y)
     {
         Figure2D figureObj = Figure2DBuilder.Instance.CreateFigure(figureId);
-        figureObj.transform.SetParent(parent, false);
+        figureObj.transform.SetParent(figureParent, false);
         
         if (figureObj == null) throw new System.IndexOutOfRangeException($"Cannot create a figure '{figureId}' in position [{x}, {y}]");
         

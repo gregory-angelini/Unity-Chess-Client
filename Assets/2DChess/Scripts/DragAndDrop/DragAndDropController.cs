@@ -84,13 +84,15 @@ public class DragAndDropController : MonoBehaviour
             args.endDragPos = endDragPos;
 
             if ((int)startDragPos.x == (int)endDragPos.x &&
-               (int)startDragPos.y == (int)endDragPos.y)// no changes
+                (int)startDragPos.y == (int)endDragPos.y)// no changes
             {
                 Vector2 oldPos = Board2DBuilder.Instance.GetWorldPosOfSquare((int)startDragPos.x, (int)startDragPos.y);
                 draggedObject.GetComponent<Figure2D>().SetWorldPosition(oldPos);
             }
             else
             {
+                // TODO: wrong move
+
                 string from = Chess.GetSquareName((int)startDragPos.x, (int)startDragPos.y);
                 string to = Chess.GetSquareName((int)endDragPos.x, (int)endDragPos.y);
                 char figure = Chess2DController.Instance.Chess.FigureAt((int)startDragPos.x, (int)startDragPos.y);
