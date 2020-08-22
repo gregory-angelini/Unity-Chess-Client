@@ -5,12 +5,10 @@ using ChessCore;
 
 public class Board2DBuilder : MonoBehaviour
 {
-    Chess chess = new Chess();
-    Vector2 startPos = new Vector3(-415, -415);
-    List<Figure2D> figures = new List<Figure2D>();
-    float squareWidth = 118f;
-    float squareHeight = 118f;
     public static Board2DBuilder Instance;
+    public Vector2 BoardStartPos { get; private set; } = new Vector2(-415, -415);
+    Figure2D[,] figures = new Figure2D[8, 8];
+    public Vector2 SquareSize { get; private set; } = new Vector2(118f, 118f);
     [SerializeField] Transform parent;
 
     void Awake()
@@ -26,37 +24,81 @@ public class Board2DBuilder : MonoBehaviour
         Build();
     }
 
-    public void Build()
+    public Vector2 GetWorldPosOfSquare(int x, int y)
     {
-        // clear the board
-        while(figures.Count > 0)
-        {
-            Destroy(figures[0].gameObject);
-            figures.RemoveAt(0);
-        }
+        return BoardStartPos + new Vector2(x * SquareSize.x, y * SquareSize.y);
+    }
 
+    public void UpdateBoard()
+    {
         Vector2 pos;
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)
             {
-                char figureCode = chess.FigureAt(x, y);
-                if (figureCode == '.') continue;
+                char figureId = Chess2DController.Instance.Chess.FigureAt(x, y);
 
-                pos = startPos + new Vector2(x * squareWidth, y * squareHeight);
-
-                Figure2D figureObj = CreateFigure(figureCode, pos, x, y);
-                figures.Add(figureObj);
+                if (figureId == '.')
+                {
+                    if (figures[x, y] != null)// figure is gone
+                    {
+                        Destroy(figures[x, y].gameObject);
+                        figures[x, y] = null;
+                    }
+                }
+                else
+                {
+                    if (figures[x, y] != null)
+                    {
+                        if (figureId == (char)figures[x, y].Id)// no changes
+                        {
+                            continue;
+                        }
+                        else// figure has been changed
+                        {
+                            Destroy(figures[x, y].gameObject);
+                            figures[x, y] = null;
+                        }
+                    }
+                    // create new figure        
+                    pos = BoardStartPos + new Vector2(x * SquareSize.x, y * SquareSize.y);
+                    Figure2D figureObj = CreateFigure(figureId, pos, x, y);
+                    figures[x, y] = figureObj;
+                }
             }
         }
     }
 
-    Figure2D CreateFigure(char figureCode, Vector2 pos, int x, int y)
+
+    void Build()
     {
-        Figure2D figureObj = Figure2DBuilder.Instance.CreateFigure(figureCode);
-        figureObj.transform.parent = parent;
+        Vector2 pos;
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                char figureId = Chess2DController.Instance.Chess.FigureAt(x, y);
+
+                if (figureId == '.')
+                {
+                    figures[x, y] = null;
+                }
+                else
+                {
+                    pos = BoardStartPos + new Vector2(x * SquareSize.x, y * SquareSize.y);
+                    Figure2D figureObj = CreateFigure(figureId, pos, x, y);
+                    figures[x, y] = figureObj;
+                }
+            }
+        }
+    }
+
+    Figure2D CreateFigure(char figureId, Vector2 pos, int x, int y)
+    {
+        Figure2D figureObj = Figure2DBuilder.Instance.CreateFigure(figureId);
+        figureObj.transform.SetParent(parent, false);
         
-        if (figureObj == null) throw new System.IndexOutOfRangeException($"Cannot create a figure '{figureCode}' in position [{x}, {y}]");
+        if (figureObj == null) throw new System.IndexOutOfRangeException($"Cannot create a figure '{figureId}' in position [{x}, {y}]");
         
         figureObj.SetWorldPosition(pos);
         figureObj.XBoardPos = x;

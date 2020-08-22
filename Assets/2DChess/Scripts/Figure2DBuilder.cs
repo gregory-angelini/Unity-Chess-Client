@@ -33,16 +33,16 @@ public class Figure2DBuilder : MonoBehaviour
             Destroy(gameObject);
     }
 
-    public Figure2D CreateFigure(char figureCode)
+    public Figure2D CreateFigure(char figureId)
     {
         Figure2D figureObj = Instantiate(figurePrefab);
-        figureObj.SetFigure(figureCode);
+        figureObj.SetFigure(figureId);
         return figureObj; 
     }
 
-    public Sprite GetFigureSprite(char figureCode)
+    public Sprite GetFigureSprite(char figureId)
     {
-        switch (figureCode)
+        switch (figureId)
         {
             case (char)Figure.whiteKing:
                 return wKingSprite;

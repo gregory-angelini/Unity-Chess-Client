@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class Figure2D : MonoBehaviour
 {
     Image image;
-    Figure state = Figure.none;
+    public Figure Id { get; private set; } = Figure.none;
    
     int xBoardPos = -1;
     public int XBoardPos
@@ -42,15 +42,20 @@ public class Figure2D : MonoBehaviour
         transform.localPosition = pos;
     }
 
-    public void SetFigure(char figureCode)
+    public Vector2 GetWorldPosition()
     {
-        Sprite sprite = Figure2DBuilder.Instance.GetFigureSprite(figureCode);
+        return transform.localPosition;
+    }
+
+    public void SetFigure(char figureId)
+    {
+        Sprite sprite = Figure2DBuilder.Instance.GetFigureSprite(figureId);
 
         if (sprite != null)
         {
             SetSprite(sprite);
             
-            state = (Figure)figureCode;
+            Id = (Figure)figureId;
         }
     }
 
