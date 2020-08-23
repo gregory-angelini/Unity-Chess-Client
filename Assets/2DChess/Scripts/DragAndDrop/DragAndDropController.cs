@@ -49,9 +49,9 @@ public class DragAndDropController : MonoBehaviour
     {
         if (state == State.none)
         {
-            if (Chess2DController.Instance.Chess.MoveColor() != Chess.GetColor(obj.GetComponent<Figure2D>().Id))
+            if (Chess2DController.Instance.Chess.GetCurrentPlayerColor() != Chess.GetFigureColor(obj.GetComponent<Figure2D>().Id))
             {
-                Debug.Log($"{Chess2DController.Instance.Chess.MoveColor()} player must move next");
+                Debug.Log($"{Chess2DController.Instance.Chess.GetCurrentPlayerColor()} player must move next");
                 return;
             }
 
@@ -87,8 +87,8 @@ public class DragAndDropController : MonoBehaviour
                                                         (int)startDragPos.x, (int)startDragPos.y,
                                                         (int)endDragPos.x, (int)endDragPos.y))
             {
-                string from = Chess.GetSquareName((int)startDragPos.x, (int)startDragPos.y);
-                string to = Chess.GetSquareName((int)endDragPos.x, (int)endDragPos.y);
+                string from = Chess.SquarePosToSquareName((int)startDragPos.x, (int)startDragPos.y);
+                string to = Chess.SquarePosToSquareName((int)endDragPos.x, (int)endDragPos.y);
                 char figure = Chess2DController.Instance.Chess.FigureAt((int)startDragPos.x, (int)startDragPos.y);
                 string fenMove = figure + from + to;
                 args.fenMove = fenMove;

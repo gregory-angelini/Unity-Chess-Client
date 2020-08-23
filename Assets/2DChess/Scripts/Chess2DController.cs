@@ -3,9 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using ChessCore;
 using UnityEditor;
+using System;
 
 public class Chess2DController : MonoBehaviour
 {
+    public class ResultArgs : EventArgs
+    {
+        public ChessCore.Color player;
+        public bool check;
+        public bool checkmate;
+    }
+
+    public event EventHandler<ResultArgs> OnMoveResult;
+
     public Chess Chess { get; private set; } = new Chess();
     public static Chess2DController Instance;
     [SerializeField] Transform HUDParent;
@@ -34,9 +44,9 @@ public class Chess2DController : MonoBehaviour
         HideMoves();
         int x, y;
 
-        foreach(string move in Chess.YieldValidMoves())
+        foreach(string move in Chess.YieldAllMoves())
         {
-            Chess.GetSquarePos(move.Substring(1, 2), out x, out y);
+            Chess.SquareNameToSquarePos(move.Substring(1, 2), out x, out y);
             ShowLegalSquare(x, y, true);
         }
     }
@@ -47,15 +57,15 @@ public class Chess2DController : MonoBehaviour
         HideMoves();
         int x, y;
 
-        foreach (string move in Chess.YieldValidMoves())
+        foreach (string move in Chess.YieldAllMoves())
         {
             if ((char)figure == move.Substring(0, 1)[0])// the same figure
             {
-                Chess.GetSquarePos(move.Substring(1, 2), out x, out y);
+                Chess.SquareNameToSquarePos(move.Substring(1, 2), out x, out y);
                
                 if (figureX == x && figureY == y)// the same position
                 {
-                    Chess.GetSquarePos(move.Substring(3, 2), out x, out y);
+                    Chess.SquareNameToSquarePos(move.Substring(3, 2), out x, out y);
 
                     if (Chess.FigureAt(x, y) != '.')// target square is not empty
                     {
@@ -118,6 +128,7 @@ public class Chess2DController : MonoBehaviour
     public void Restart()
     {
         Chess = new Chess();
+        HideMoves();
     }
 
     void OnStartDragFigure(object source, DragAndDropController.DragArgs args)
@@ -130,11 +141,26 @@ public class Chess2DController : MonoBehaviour
     {
         if (args.result)
         {
-            Debug.Log($"End drag ({args.result }): { args.fenMove }");
+            Debug.Log($"End drag: { args.fenMove }");   
+
             Chess = Chess.Move(args.fenMove);
-            Board2DBuilder.Instance.UpdateBoard();  
+            Board2DBuilder.Instance.UpdateBoard();
+            Debug.Log($"New state: {Chess.fen}");
+
+
+            ResultArgs resultArgs = new ResultArgs();
+            resultArgs.player = Chess.GetCurrentPlayerColor();
+            resultArgs.check = Chess.IsOurKingInCheck();
+            resultArgs.checkmate = Chess.IsOurKingInCheckmate();
+
+            if(Chess.IsOurKingInCheckmate())
+                Debug.Log($"{Chess.GetCurrentPlayerColor()} player in checkmate");
+            else if(Chess.IsOurKingInCheck()) 
+                Debug.Log($"{Chess.GetCurrentPlayerColor()} player in check");
+
+            OnMoveResult?.Invoke(this, resultArgs);
         }
 
-        ShowLegalFigures();
+        ShowLegalFigures(); 
     }
 }
