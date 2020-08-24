@@ -27,8 +27,8 @@ public class DragAndDropController : MonoBehaviour
     State state = State.none;
     DraggableFigure draggedObject;
 
-    public event EventHandler<DragArgs> OnStartDrag;
-    public event EventHandler<DragArgs> OnEndDrag;
+    public event EventHandler<DragArgs> OnStartDragFigure;
+    public event EventHandler<DragArgs> OnEndDragFigure;
     Vector2 startDragPos = new Vector2();
     Vector2 endDragPos = new Vector2();
 
@@ -67,7 +67,7 @@ public class DragAndDropController : MonoBehaviour
             args.draggedObject = draggedObject;
             args.startDragPos = startDragPos;
             args.result = true;
-            OnStartDrag?.Invoke(this, args);
+            OnStartDragFigure?.Invoke(this, args);
         }
     }
 
@@ -100,7 +100,7 @@ public class DragAndDropController : MonoBehaviour
                 draggedObject.GetComponent<Figure2D>().SetWorldPosition(oldPos);
             }
             
-            OnEndDrag?.Invoke(this, args);
+            OnEndDragFigure?.Invoke(this, args);
 
             draggedObject = null;
             state = State.none;

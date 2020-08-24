@@ -4,6 +4,7 @@ using UnityEngine;
 using ChessCore;
 using UnityEditor;
 using System;
+using PopUp;
 
 public class Chess2DController : MonoBehaviour
 {
@@ -32,8 +33,8 @@ public class Chess2DController : MonoBehaviour
 
     void Start()
     {
-        DragAndDropController.Instance.OnStartDrag += OnStartDragFigure;
-        DragAndDropController.Instance.OnEndDrag += OnEndDragFigure;
+        DragAndDropController.Instance.OnStartDragFigure += OnStartDragFigure;
+        DragAndDropController.Instance.OnEndDragFigure += OnEndDragFigure;
 
         CreateSquares();
         ShowLegalFigures();
@@ -121,14 +122,14 @@ public class Chess2DController : MonoBehaviour
 
     void OnDestroy()
     {
-        DragAndDropController.Instance.OnStartDrag -= OnStartDragFigure;
-        DragAndDropController.Instance.OnEndDrag -= OnEndDragFigure;
+        DragAndDropController.Instance.OnStartDragFigure -= OnStartDragFigure;
+        DragAndDropController.Instance.OnEndDragFigure -= OnEndDragFigure;
     }
 
     public void Restart()
     {
         Chess = new Chess();
-        HideMoves();
+        ShowLegalFigures();
     }
 
     void OnStartDragFigure(object source, DragAndDropController.DragArgs args)
@@ -141,12 +142,14 @@ public class Chess2DController : MonoBehaviour
     {
         if (args.result)
         {
-            Debug.Log($"End drag: { args.fenMove }");   
+            Debug.Log($"End drag: { args.fenMove }");
+            GuiController.Instance.ShowFigurePromotion();
+
+            // TODO: here we can handle figure promotion by modifying fenMove
 
             Chess = Chess.Move(args.fenMove);
             Board2DBuilder.Instance.UpdateBoard();
             Debug.Log($"New state: {Chess.fen}");
-
 
             ResultArgs resultArgs = new ResultArgs();
             resultArgs.player = Chess.GetCurrentPlayerColor();
