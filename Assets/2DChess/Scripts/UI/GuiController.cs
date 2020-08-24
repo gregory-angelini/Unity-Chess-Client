@@ -6,10 +6,10 @@ namespace PopUp
 {
     public class GuiController : MonoBehaviour
     {
-        Queue<PopUpController> popUps = new Queue<PopUpController>();
+        Queue<BasicPopUp> popUps = new Queue<BasicPopUp>();
         [SerializeField] Canvas popup;
         [Header("Popup prefabs", order = 1)]
-        [SerializeField] PopUpController figurePromotionPrefab;
+        [SerializeField] BasicPopUp figurePromotionPrefab;
         public static GuiController Instance;
 
 
@@ -23,39 +23,19 @@ namespace PopUp
                 Instance = this;
         }
 
-        public PopUpController ShowFigurePromotion()
+        public BasicPopUp ShowFigurePromotion()
         {
-            PopUpController controller = CreatePopUp(figurePromotionPrefab);
-
-            controller.GetComponent<FigurePromotionPopUp>().Init(
-                Chess2DController.Instance.Chess.GetCurrentPlayerColor(),
-                () =>
-                {
-                    controller.CloseWindow();
-                },
-                () =>
-                {
-                    controller.CloseWindow();
-                },
-                () =>
-                {
-                    controller.CloseWindow();
-                },
-                () =>
-                {
-                    controller.CloseWindow();
-                });
-
+            BasicPopUp controller = CreatePopUp(figurePromotionPrefab);
             controller.ShowWindow();
             return controller;
         }
 
-        PopUpController CreatePopUp(PopUpController prefab)
+        BasicPopUp CreatePopUp(BasicPopUp prefab)
         {
             if (prefab == null) 
                 throw new System.IndexOutOfRangeException("CreatePopUp: the prefab you want to instantiate is null");
 
-            PopUpController popUp = Instantiate(prefab);
+            BasicPopUp popUp = Instantiate(prefab);
 
             if (popUp == null)
                 throw new System.IndexOutOfRangeException("CreatePopUp: cannot create the prefab");
@@ -68,12 +48,12 @@ namespace PopUp
             return popUp;
         }
 
-        void OnWindowOpen(PopUpController popUp)
+        void OnWindowOpen(BasicPopUp popUp)
         {
             popUps.Enqueue(popUp);
         }
 
-        void OnWindowClose(PopUpController popUp)
+        void OnWindowClose(BasicPopUp popUp)
         {
             popUp = popUps.Dequeue();
             Destroy(popUp.gameObject);

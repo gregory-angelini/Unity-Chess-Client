@@ -6,14 +6,33 @@ using System;
 
 namespace PopUp
 {
-    public class PopUpController : MonoBehaviour
+    public class WaitForClosing : CustomYieldInstruction
+    {
+        BasicPopUp popUp;
+
+        public WaitForClosing(BasicPopUp popUp)
+        {
+            this.popUp = popUp;
+        }
+
+        public override bool keepWaiting
+        {
+            get
+            {
+                return !popUp.IsClosed;
+            }
+        }
+    }
+
+
+    public class BasicPopUp : MonoBehaviour
     {
         [SerializeField] bool CanBeEscaped = true;
-        public delegate void ActionType(PopUpController popUp);// определяем сигнатуру методов-действий, которые могут использоваться в качестве реакции на событие  
+        public delegate void ActionType(BasicPopUp popUp);// определяем сигнатуру методов-действий, которые могут использоваться в качестве реакции на событие  
         public event ActionType OnWindowOpen; // runs after opening
         public event ActionType OnWindowClose; // runs after closing
 
-        bool isDestroyed = false;
+        public bool IsClosed { get; private set; }  = false;
         public bool IsVisible { get; private set; } = false;
 
 
@@ -26,7 +45,7 @@ namespace PopUp
 
         void CloseHandler()
         {
-            if (isDestroyed)
+            if (IsClosed)
                 return;
 
             //if (SoundMasterController.Instance != null)
@@ -64,7 +83,7 @@ namespace PopUp
 
         void OnDestroy()
         {
-            isDestroyed = true;
+            IsClosed = true;
         }
 
         public void SetControlActivity(bool activity)

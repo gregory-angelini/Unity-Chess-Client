@@ -47,7 +47,7 @@ public class Figure2D : MonoBehaviour
         return transform.localPosition;
     }
 
-    public void SetFigure(char figureId)
+    public void SetFigure(Figure figureId)
     {
         Sprite sprite = Figure2DBuilder.Instance.GetFigureSprite(figureId);
 

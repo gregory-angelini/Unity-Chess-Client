@@ -17,14 +17,17 @@ public class Chess2DController : MonoBehaviour
 
     public event EventHandler<ResultArgs> OnMoveResult;
 
-    public Chess Chess { get; private set; } = new Chess();
+    public Chess Chess { get; private set; }
     public static Chess2DController Instance;
+    [SerializeField] string startFen = "4k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     [SerializeField] Transform HUDParent;
     [SerializeField] HighlightSquare squarePrefab;
     HighlightSquare[,] squares = new HighlightSquare[8, 8];
 
     void Awake()
     {
+        Chess = new Chess(startFen);
+
         if (Instance == null)
             Instance = this;
         else
@@ -68,7 +71,7 @@ public class Chess2DController : MonoBehaviour
                 {
                     Chess.SquareNameToSquarePos(move.Substring(3, 2), out x, out y);
 
-                    if (Chess.FigureAt(x, y) != '.')// target square is not empty
+                    if (Chess.FigureAt(x, y) != Figure.none)// target square is not empty
                     {
                         ShowLegalSquare(x, y, false);
                     }
@@ -140,12 +143,35 @@ public class Chess2DController : MonoBehaviour
 
     void OnEndDragFigure(object source, DragAndDropController.DragArgs args)
     {
+        StartCoroutine(OnEndDragFigure(args));
+    }
+
+    IEnumerator OnEndDragFigure(DragAndDropController.DragArgs args)
+    {
         if (args.result)
         {
             Debug.Log($"End drag: { args.fenMove }");
-            GuiController.Instance.ShowFigurePromotion();
 
-            // TODO: here we can handle figure promotion by modifying fenMove
+            // here we can handle figure promotion by modifying fenMove
+            Figure draggedFigure = Chess.FigureAt((int)args.startDragPos.x, (int)args.startDragPos.y);
+            if (draggedFigure == Figure.whitePawn || draggedFigure == Figure.blackPawn)
+            {
+                bool promotion = (int)args.endDragPos.y == 7 || (int)args.endDragPos.y == 0;
+
+                if (promotion)
+                {
+                    Debug.Log("1");
+                    FigurePromotionPopUp popUp = GuiController.Instance.ShowFigurePromotion() as FigurePromotionPopUp;
+                    popUp.Run(Chess.GetCurrentPlayerColor(), (Figure figure) =>
+                    {
+                        args.fenMove += (char)figure;
+                        Debug.Log("fenMove:" + args.fenMove);
+                    });
+                    yield return new WaitForClosing(popUp); // conditions for stopping the coroutine
+                    Debug.Log("4");
+                }
+            }
+
 
             Chess = Chess.Move(args.fenMove);
             Board2DBuilder.Instance.UpdateBoard();
@@ -156,14 +182,15 @@ public class Chess2DController : MonoBehaviour
             resultArgs.check = Chess.IsOurKingInCheck();
             resultArgs.checkmate = Chess.IsOurKingInCheckmate();
 
-            if(Chess.IsOurKingInCheckmate())
+            if (Chess.IsOurKingInCheckmate())
                 Debug.Log($"{Chess.GetCurrentPlayerColor()} player in checkmate");
-            else if(Chess.IsOurKingInCheck()) 
+            else if (Chess.IsOurKingInCheck())
                 Debug.Log($"{Chess.GetCurrentPlayerColor()} player in check");
 
             OnMoveResult?.Invoke(this, resultArgs);
         }
 
-        ShowLegalFigures(); 
+        ShowLegalFigures();
+
     }
 }

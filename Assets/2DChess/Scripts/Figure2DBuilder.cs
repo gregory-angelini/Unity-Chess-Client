@@ -33,51 +33,51 @@ public class Figure2DBuilder : MonoBehaviour
             Destroy(gameObject);
     }
 
-    public Figure2D CreateFigure(char figureId)
+    public Figure2D CreateFigure(Figure figureId)
     {
         Figure2D figureObj = Instantiate(figurePrefab);
         figureObj.SetFigure(figureId);
         return figureObj; 
     }
 
-    public Sprite GetFigureSprite(char figureId)
+    public Sprite GetFigureSprite(Figure figureId)
     {
         switch (figureId)
         {
-            case (char)Figure.whiteKing:
+            case Figure.whiteKing:
                 return wKingSprite;
 
-            case (char)Figure.blackKing:
+            case Figure.blackKing:
                 return bKingSprite;
 
-            case (char)Figure.whiteQueen:
+            case Figure.whiteQueen:
                 return wQueenSprite;
 
-            case (char)Figure.blackQueen:
+            case Figure.blackQueen:
                 return bQueenSprite;
 
-            case (char)Figure.whiteRook:
+            case Figure.whiteRook:
                 return wRookSprite;
 
-            case (char)Figure.blackRook:
+            case Figure.blackRook:
                 return bRookSprite;
 
-            case (char)Figure.whiteBishop:
+            case Figure.whiteBishop:
                 return wBishopSprite;
 
-            case (char)Figure.blackBishop:
+            case Figure.blackBishop:
                 return bBishopSprite;
 
-            case (char)Figure.whiteKnight:
+            case Figure.whiteKnight:
                 return wKnightSprite;
 
-            case (char)Figure.blackKnight:
+            case Figure.blackKnight:
                 return bKnightSprite;
 
-            case (char)Figure.whitePawn:
+            case Figure.whitePawn:
                 return wPawnSprite;
 
-            case (char)Figure.blackPawn:
+            case Figure.blackPawn:
                 return bPawnSprite;
         }
         return null;

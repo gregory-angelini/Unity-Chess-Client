@@ -36,9 +36,9 @@ public class Board2DBuilder : MonoBehaviour
         {
             for (int y = 0; y < 8; y++)
             {
-                char figureId = Chess2DController.Instance.Chess.FigureAt(x, y);
+                Figure figureId = Chess2DController.Instance.Chess.FigureAt(x, y);
 
-                if (figureId == '.')
+                if (figureId == Figure.none)
                 {
                     if (figures[x, y] != null)// figure is gone
                     {
@@ -50,7 +50,7 @@ public class Board2DBuilder : MonoBehaviour
                 {
                     if (figures[x, y] != null)
                     {
-                        if (figureId == (char)figures[x, y].Id)// no changes
+                        if (figureId == figures[x, y].Id)// no changes
                         {
                             continue;
                         }
@@ -94,9 +94,9 @@ public class Board2DBuilder : MonoBehaviour
                     figures[x, y] = null;
                 }
 
-                char figureId = Chess2DController.Instance.Chess.FigureAt(x, y);
+                Figure figureId = Chess2DController.Instance.Chess.FigureAt(x, y);
 
-                if (figureId != '.')
+                if (figureId != Figure.none)
                 {
                     pos = BoardStartPos + new Vector2(x * SquareSize.x, y * SquareSize.y);
                     Figure2D figureObj = CreateFigure(figureId, pos, x, y);
@@ -106,7 +106,7 @@ public class Board2DBuilder : MonoBehaviour
         }
     }
 
-    Figure2D CreateFigure(char figureId, Vector2 pos, int x, int y)
+    Figure2D CreateFigure(Figure figureId, Vector2 pos, int x, int y)
     {
         Figure2D figureObj = Figure2DBuilder.Instance.CreateFigure(figureId);
         figureObj.transform.SetParent(figureParent, false);

@@ -622,7 +622,6 @@ GameObject:
   - component: {fileID: 4078595295917184225}
   - component: {fileID: 4078595295917184250}
   - component: {fileID: 4078595295917184228}
-  - component: {fileID: 4078595295917184231}
   m_Layer: 5
   m_Name: FigurePromotionPopUp
   m_TagString: Untagged
@@ -671,6 +670,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81d1e4227d32ea84bafdcf5659454800, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CanBeEscaped: 0
   N: {fileID: 7824246518324773442, guid: 92936258b712f894bb383ae0e700d9f4, type: 3}
   B: {fileID: -4906696744660455707, guid: 92936258b712f894bb383ae0e700d9f4, type: 3}
   R: {fileID: -6922364690759562986, guid: 92936258b712f894bb383ae0e700d9f4, type: 3}
@@ -683,19 +683,6 @@ MonoBehaviour:
   bishop: {fileID: 4078595295838506263}
   rook: {fileID: 4078595295856129552}
   queen: {fileID: 4078595294451856063}
---- !u!114 &4078595295917184231
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4078595295917184224}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3175d4070f37dba46ac3c9f70d756d75, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  CanBeEscaped: 0
 --- !u!1 &5420912182044406377
 GameObject:
   m_ObjectHideFlags: 0

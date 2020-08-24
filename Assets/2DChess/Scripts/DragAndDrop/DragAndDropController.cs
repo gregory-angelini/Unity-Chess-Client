@@ -89,8 +89,8 @@ public class DragAndDropController : MonoBehaviour
             {
                 string from = Chess.SquarePosToSquareName((int)startDragPos.x, (int)startDragPos.y);
                 string to = Chess.SquarePosToSquareName((int)endDragPos.x, (int)endDragPos.y);
-                char figure = Chess2DController.Instance.Chess.FigureAt((int)startDragPos.x, (int)startDragPos.y);
-                string fenMove = figure + from + to;
+                Figure figure = Chess2DController.Instance.Chess.FigureAt((int)startDragPos.x, (int)startDragPos.y);
+                string fenMove = (char)figure + from + to;
                 args.fenMove = fenMove;
                 args.result = true;
             }

@@ -1,11 +1,12 @@
-﻿using System;
+﻿using PopUp;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using ChessCore;
 
-
-public class FigurePromotionPopUp : MonoBehaviour
+public class FigurePromotionPopUp : BasicPopUp
 {
     [SerializeField] Sprite N;
     [SerializeField] Sprite B;
@@ -21,25 +22,32 @@ public class FigurePromotionPopUp : MonoBehaviour
     [SerializeField] Button bishop;
     [SerializeField] Button rook;
     [SerializeField] Button queen;
+    Action<Figure> OnPickFigure;
 
-    Action OnPickKnight;
-    Action OnPickBishop;
-    Action OnPickRook;
-    Action OnPickQueen;
-    ChessCore.Color playerColor;
-
-    public void Init(ChessCore.Color playerColor, Action onPickKnight, Action onPickBishop, Action onPickRook, Action onPickQueen)
+    public void Run(ChessCore.Color playerColor, Action<Figure> onPickFigure)
     {
-        this.playerColor = playerColor;
-        OnPickKnight = onPickKnight;
-        OnPickBishop = onPickBishop;
-        OnPickRook = onPickRook;
-        OnPickQueen = onPickQueen;
+        OnPickFigure = onPickFigure;
 
-        knight.onClick.AddListener(OnKnightButton);
-        bishop.onClick.AddListener(OnBishopButton);
-        rook.onClick.AddListener(OnRookButton);
-        queen.onClick.AddListener(OnQueenButton);
+        knight.onClick.AddListener(() => 
+        { 
+            OnPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteKnight : Figure.blackKnight); 
+            CloseWindow(); 
+        });
+        bishop.onClick.AddListener(() => 
+        {
+            OnPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteBishop : Figure.blackBishop);
+            CloseWindow(); 
+        });
+        rook.onClick.AddListener(() => 
+        {
+            OnPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteRook : Figure.blackRook);
+            CloseWindow(); 
+        });
+        queen.onClick.AddListener(() => 
+        {
+            OnPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteQueen : Figure.blackQueen);
+            CloseWindow(); 
+        });
 
         if (playerColor == ChessCore.Color.white)
         {
@@ -55,25 +63,5 @@ public class FigurePromotionPopUp : MonoBehaviour
             rook.image.sprite = r;
             queen.image.sprite = q;
         }
-    }
-    
-    void OnKnightButton()
-    {
-        OnPickKnight?.Invoke();
-    }
-
-    void OnBishopButton()
-    {
-        OnPickBishop?.Invoke();
-    }
-
-    void OnRookButton()
-    {
-        OnPickRook?.Invoke();
-    }
-
-    void OnQueenButton()
-    {
-        OnPickQueen?.Invoke();
     }
 }
