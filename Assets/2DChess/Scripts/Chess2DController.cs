@@ -77,7 +77,13 @@ public class Chess2DController : MonoBehaviour
                     }
                     else
                     {
-                        ShowLegalSquare(x, y, true);
+                        bool enPassant = false;
+                        int epX, epY;
+                        if (Chess.IsEnPassant(out epX, out epY))
+                        {
+                            enPassant = x == epX && y == epY;
+                        }
+                        ShowLegalSquare(x, y, !enPassant);
                     }
                 }
             }

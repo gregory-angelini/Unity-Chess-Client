@@ -807,7 +807,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a15e331f09b4db43a266c9864c82ea9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startFen: 4k3/8/P7/8/8/8/1PPPPPPP/RNBQKBNR w KQkq - 0 1
+  startFen: r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1
   HUDParent: {fileID: 2037513823}
   squarePrefab: {fileID: 4653176339374831322, guid: 0a072e045cabc2048ab165f6dee3dd3c,
     type: 3}

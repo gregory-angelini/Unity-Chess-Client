@@ -22,30 +22,28 @@ public class FigurePromotionPopUp : BasicPopUp
     [SerializeField] Button bishop;
     [SerializeField] Button rook;
     [SerializeField] Button queen;
-    Action<Figure> OnPickFigure;
+
 
     public void Run(ChessCore.Color playerColor, Action<Figure> onPickFigure)
     {
-        OnPickFigure = onPickFigure;
-
         knight.onClick.AddListener(() => 
         { 
-            OnPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteKnight : Figure.blackKnight); 
+            onPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteKnight : Figure.blackKnight); 
             CloseWindow(); 
         });
         bishop.onClick.AddListener(() => 
         {
-            OnPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteBishop : Figure.blackBishop);
+            onPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteBishop : Figure.blackBishop);
             CloseWindow(); 
         });
         rook.onClick.AddListener(() => 
         {
-            OnPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteRook : Figure.blackRook);
+            onPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteRook : Figure.blackRook);
             CloseWindow(); 
         });
         queen.onClick.AddListener(() => 
         {
-            OnPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteQueen : Figure.blackQueen);
+            onPickFigure?.Invoke(playerColor == ChessCore.Color.white ? Figure.whiteQueen : Figure.blackQueen);
             CloseWindow(); 
         });
 
