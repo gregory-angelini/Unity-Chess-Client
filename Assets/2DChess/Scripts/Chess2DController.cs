@@ -13,6 +13,7 @@ public class Chess2DController : MonoBehaviour
         public ChessCore.Color player;
         public bool check;
         public bool checkmate;
+        public bool stalemate;
     }
 
     public event EventHandler<ResultArgs> OnMoveResult;
@@ -166,7 +167,6 @@ public class Chess2DController : MonoBehaviour
 
                 if (promotion)
                 {
-                    Debug.Log("1");
                     FigurePromotionPopUp popUp = GuiController.Instance.ShowFigurePromotion() as FigurePromotionPopUp;
                     popUp.Run(Chess.GetCurrentPlayerColor(), (Figure figure) =>
                     {
@@ -174,7 +174,6 @@ public class Chess2DController : MonoBehaviour
                         Debug.Log("fenMove:" + args.fenMove);
                     });
                     yield return new WaitForClosing(popUp); // conditions for stopping the coroutine
-                    Debug.Log("4");
                 }
             }
 
@@ -185,12 +184,15 @@ public class Chess2DController : MonoBehaviour
 
             ResultArgs resultArgs = new ResultArgs();
             resultArgs.player = Chess.GetCurrentPlayerColor();
-            resultArgs.check = Chess.IsOurKingInCheck();
-            resultArgs.checkmate = Chess.IsOurKingInCheckmate();
+            resultArgs.checkmate = Chess.IsCheckmate();
+            resultArgs.check = Chess.IsCheck();
+            resultArgs.stalemate = Chess.IsStalemate();
 
-            if (Chess.IsOurKingInCheckmate())
+            if (resultArgs.checkmate)
                 Debug.Log($"{Chess.GetCurrentPlayerColor()} player in checkmate");
-            else if (Chess.IsOurKingInCheck())
+            else if (resultArgs.stalemate)
+                Debug.Log($"{Chess.GetCurrentPlayerColor()} player in stalemate");
+            else if (resultArgs.check)
                 Debug.Log($"{Chess.GetCurrentPlayerColor()} player in check");
 
             OnMoveResult?.Invoke(this, resultArgs);
