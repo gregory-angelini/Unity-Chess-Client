@@ -21,7 +21,7 @@ public class Board2DBuilder : MonoBehaviour
 
     void Start()
     {
-        Build();
+        //Build();
     }
 
     public Vector2 GetWorldPosOfSquare(int x, int y)
@@ -69,18 +69,10 @@ public class Board2DBuilder : MonoBehaviour
         }
     }
 
-    public void Restart()
+
+    public void Build(Chess chess)
     {
-        Chess2DController.Instance.Restart();
-
-        UpdateBoard();
-
-        Debug.Log("Restart game");
-    }
-
-    void Build()
-    {
-        Debug.Log("New game");
+        //Debug.Log("New game");
 
         Vector2 pos;
         for (int x = 0; x < 8; x++)
@@ -94,7 +86,7 @@ public class Board2DBuilder : MonoBehaviour
                     figures[x, y] = null;
                 }
 
-                Figure figureId = Chess2DController.Instance.Chess.FigureAt(x, y);
+                Figure figureId = chess.FigureAt(x, y);
 
                 if (figureId != Figure.none)
                 {

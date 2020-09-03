@@ -5,6 +5,10 @@ using ChessCore;
 using UnityEditor;
 using System;
 using PopUp;
+using ChessClient;
+using System.Threading;
+using System.Threading.Tasks;
+
 
 public class Chess2DController : MonoBehaviour
 {
@@ -20,28 +24,36 @@ public class Chess2DController : MonoBehaviour
 
     public Chess Chess { get; private set; }
     public static Chess2DController Instance;
-    [SerializeField] string startFen = "4k3/8/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    //[SerializeField] string startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     [SerializeField] Transform HUDParent;
     [SerializeField] HighlightSquare squarePrefab;
     HighlightSquare[,] squares = new HighlightSquare[8, 8];
+    [SerializeField] string host = "https://localhost:44334/api/";
+    Client client;
+    GameInfo gameInfo;
+    GameState curGameState;
+    SynchronizationContext mainSyncContext;
 
     void Awake()
     {
-        Chess = new Chess(startFen);
-
         if (Instance == null)
             Instance = this;
         else
             Destroy(gameObject);
+
+
+        mainSyncContext = SynchronizationContext.Current;// Context of main thread
     }
 
-    void Start()
+    async void Start()
     {
         DragAndDropController.Instance.OnStartDragFigure += OnStartDragFigure;
         DragAndDropController.Instance.OnEndDragFigure += OnEndDragFigure;
 
         CreateSquares();
-        ShowLegalFigures();
+       
+        // TODO: need remove this
+        System.Net.ServicePointManager.ServerCertificateValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
     }
 
     void ShowLegalFigures()
@@ -136,12 +148,6 @@ public class Chess2DController : MonoBehaviour
         DragAndDropController.Instance.OnEndDragFigure -= OnEndDragFigure;
     }
 
-    public void Restart()
-    {
-        Chess = new Chess();
-        ShowLegalFigures();
-    }
-
     void OnStartDragFigure(object source, DragAndDropController.DragArgs args)
     {
         Figure2D figure = args.draggedObject.GetComponent<Figure2D>();
@@ -151,6 +157,23 @@ public class Chess2DController : MonoBehaviour
     void OnEndDragFigure(object source, DragAndDropController.DragArgs args)
     {
         StartCoroutine(OnEndDragFigure(args));
+    }
+
+    public async void StartNewGame()
+    {
+        client = new Client(host);
+
+        await client.FindGame((result) =>
+        {
+            mainSyncContext.Post(s =>// runs the following code on the main thread
+            {
+                gameInfo = result;
+                Chess = new Chess(gameInfo.FEN);
+
+                Board2DBuilder.Instance.Build(Chess);
+                ShowLegalFigures();
+            }, null);
+        });
     }
 
     IEnumerator OnEndDragFigure(DragAndDropController.DragArgs args)
@@ -177,28 +200,41 @@ public class Chess2DController : MonoBehaviour
                 }
             }
 
+            MakeMove(args.fenMove, () =>
+            {
+                Chess = new Chess(curGameState.FEN);
+                Board2DBuilder.Instance.UpdateBoard();
+                Debug.Log($"new state: {Chess.fen}");
 
-            Chess = Chess.Move(args.fenMove);
-            Board2DBuilder.Instance.UpdateBoard();
-            Debug.Log($"New state: {Chess.fen}");
+                ResultArgs resultArgs = new ResultArgs();
+                resultArgs.player = Chess.GetCurrentPlayerColor();
+                resultArgs.checkmate = Chess.IsCheckmate();
+                resultArgs.check = Chess.IsCheck();
+                resultArgs.stalemate = Chess.IsStalemate();
 
-            ResultArgs resultArgs = new ResultArgs();
-            resultArgs.player = Chess.GetCurrentPlayerColor();
-            resultArgs.checkmate = Chess.IsCheckmate();
-            resultArgs.check = Chess.IsCheck();
-            resultArgs.stalemate = Chess.IsStalemate();
+                if (resultArgs.checkmate)
+                    Debug.Log($"{Chess.GetCurrentPlayerColor()} player in checkmate");
+                else if (resultArgs.stalemate)
+                    Debug.Log($"{Chess.GetCurrentPlayerColor()} player in stalemate");
+                else if (resultArgs.check)
+                    Debug.Log($"{Chess.GetCurrentPlayerColor()} player in check");
 
-            if (resultArgs.checkmate)
-                Debug.Log($"{Chess.GetCurrentPlayerColor()} player in checkmate");
-            else if (resultArgs.stalemate)
-                Debug.Log($"{Chess.GetCurrentPlayerColor()} player in stalemate");
-            else if (resultArgs.check)
-                Debug.Log($"{Chess.GetCurrentPlayerColor()} player in check");
-
-            OnMoveResult?.Invoke(this, resultArgs);
+                ShowLegalFigures();
+                OnMoveResult?.Invoke(this, resultArgs);
+            });
         }
+        else ShowLegalFigures();
+    }
 
-        ShowLegalFigures();
-
+    async void MakeMove(string fenMove, Action callback)
+    {
+        await client.SendMove(gameInfo.gameID, fenMove, (result) =>
+        {
+            mainSyncContext.Post(s =>// runs the following code on the main thread
+            {
+                curGameState = result;
+                callback?.Invoke();
+            }, null);
+        });
     }
 }
