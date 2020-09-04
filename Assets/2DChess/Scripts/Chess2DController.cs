@@ -5,7 +5,7 @@ using ChessCore;
 using UnityEditor;
 using System;
 using PopUp;
-using ChessClient;
+
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,11 +28,8 @@ public class Chess2DController : MonoBehaviour
     [SerializeField] Transform HUDParent;
     [SerializeField] HighlightSquare squarePrefab;
     HighlightSquare[,] squares = new HighlightSquare[8, 8];
-    [SerializeField] string host = "https://localhost:44334/api/";
-    Client client;
-    GameInfo gameInfo;
-    GameState curGameState;
     SynchronizationContext mainSyncContext;
+    float refreshHz = 2f;// in seconds
 
     void Awake()
     {
@@ -51,9 +48,34 @@ public class Chess2DController : MonoBehaviour
         DragAndDropController.Instance.OnEndDragFigure += OnEndDragFigure;
 
         CreateSquares();
-       
+
+
+        Chess = new Chess(ClientController.Instance.GameInfo.FEN);
+        Board2DBuilder.Instance.Build(Chess);
+        ShowLegalFigures();
+
         // TODO: need remove this
-        System.Net.ServicePointManager.ServerCertificateValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
+        //System.Net.ServicePointManager.ServerCertificateValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
+
+        //InvokeRepeating("RefreshGame", refreshHz, refreshHz);
+    }
+
+    async void RefreshGame()
+    {
+        /*
+        await ClientController.Instance.Client.GetGame(ClientController.Instance.GameInfo.gameID, (result) =>
+        {
+            mainSyncContext.Post(s =>// runs the following code on the main thread
+            {
+                Debug.Log("RefreshGame");
+                ClientController.Instance.GameState = result;
+                Chess = new Chess(ClientController.Instance.GameState.FEN);
+
+                Board2DBuilder.Instance.UpdateBoard();
+                ShowLegalFigures();
+            }, null);
+        });
+        */
     }
 
     void ShowLegalFigures()
@@ -159,23 +181,6 @@ public class Chess2DController : MonoBehaviour
         StartCoroutine(OnEndDragFigure(args));
     }
 
-    public async void StartNewGame()
-    {
-        client = new Client(host);
-
-        await client.FindGame((result) =>
-        {
-            mainSyncContext.Post(s =>// runs the following code on the main thread
-            {
-                gameInfo = result;
-                Chess = new Chess(gameInfo.FEN);
-
-                Board2DBuilder.Instance.Build(Chess);
-                ShowLegalFigures();
-            }, null);
-        });
-    }
-
     IEnumerator OnEndDragFigure(DragAndDropController.DragArgs args)
     {
         if (args.result)
@@ -200,9 +205,9 @@ public class Chess2DController : MonoBehaviour
                 }
             }
 
-            MakeMove(args.fenMove, () =>
+            ClientController.Instance.SendMove(args.fenMove, (result) =>
             {
-                Chess = new Chess(curGameState.FEN);
+                Chess = new Chess(result.FEN);
                 Board2DBuilder.Instance.UpdateBoard();
                 Debug.Log($"new state: {Chess.fen}");
 
@@ -223,18 +228,7 @@ public class Chess2DController : MonoBehaviour
                 OnMoveResult?.Invoke(this, resultArgs);
             });
         }
-        else ShowLegalFigures();
-    }
-
-    async void MakeMove(string fenMove, Action callback)
-    {
-        await client.SendMove(gameInfo.gameID, fenMove, (result) =>
-        {
-            mainSyncContext.Post(s =>// runs the following code on the main thread
-            {
-                curGameState = result;
-                callback?.Invoke();
-            }, null);
-        });
+        else // illegal move
+            ShowLegalFigures();
     }
 }
