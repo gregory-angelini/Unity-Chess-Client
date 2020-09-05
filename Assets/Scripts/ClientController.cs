@@ -86,6 +86,23 @@ public class ClientController : MonoBehaviour
         });
     }
 
+    public async void UpdateGameState(Action<GameState> callback)
+    {
+        await Client.GetGame(GameInfo.gameID, (result) =>
+        {
+            mainSyncContext.Post(s =>// runs the following code on the main thread
+            {
+                GameState = result;
+                
+                if(GameState.status == "play")
+                {
+                    Debug.Log(JsonConvert.SerializeObject(result));
+                    callback?.Invoke(result);
+                }
+            }, null);
+        });
+    }
+
     public async void SendMove(string fenMove, Action<GameState> callback)
     {
         await Client.SendMove(GameInfo.gameID, fenMove, (result) =>

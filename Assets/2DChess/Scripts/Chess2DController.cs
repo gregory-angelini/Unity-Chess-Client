@@ -57,25 +57,28 @@ public class Chess2DController : MonoBehaviour
         // TODO: need remove this
         //System.Net.ServicePointManager.ServerCertificateValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
 
-        //InvokeRepeating("RefreshGame", refreshHz, refreshHz);
+        if (ClientController.Instance.PlayerColor == "black")
+        {
+            InvokeRepeating("RefreshGame", refreshHz, refreshHz);
+        }
     }
 
-    async void RefreshGame()
+    void RefreshGame()
     {
-        /*
-        await ClientController.Instance.Client.GetGame(ClientController.Instance.GameInfo.gameID, (result) =>
-        {
-            mainSyncContext.Post(s =>// runs the following code on the main thread
-            {
-                Debug.Log("RefreshGame");
-                ClientController.Instance.GameState = result;
-                Chess = new Chess(ClientController.Instance.GameState.FEN);
+        Debug.Log("RefreshGame");
 
+        ClientController.Instance.UpdateGameState((result) =>
+        {
+            if (result.lastMoveColor != ClientController.Instance.PlayerColor)// our turn begins
+            {
+                Chess = new Chess(ClientController.Instance.GameState.FEN);
                 Board2DBuilder.Instance.UpdateBoard();
                 ShowLegalFigures();
-            }, null);
+                Debug.Log("cancel");
+
+                CancelInvoke("RefreshGame");
+            }
         });
-        */
     }
 
     void ShowLegalFigures()
@@ -144,7 +147,7 @@ public class Chess2DController : MonoBehaviour
             }
         }
     }
-
+     
     void ShowLegalSquare(int x, int y, bool emptyOrEnemy)
     {
         if (emptyOrEnemy) 
@@ -152,7 +155,7 @@ public class Chess2DController : MonoBehaviour
         else 
             squares[x, y].ShowEnemySquare();
     }
-
+     
     void HideMoves()
     {
         for (int x = 0; x < 8; x++)
@@ -224,7 +227,9 @@ public class Chess2DController : MonoBehaviour
                 else if (resultArgs.check)
                     Debug.Log($"{Chess.GetCurrentPlayerColor()} player in check");
 
-                ShowLegalFigures();
+                //ShowLegalFigures();
+                HideMoves(); 
+                InvokeRepeating("RefreshGame", refreshHz, refreshHz);// the opponent's turn begins
                 OnMoveResult?.Invoke(this, resultArgs);
             });
         }

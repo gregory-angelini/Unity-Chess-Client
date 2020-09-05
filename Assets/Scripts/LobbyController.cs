@@ -40,7 +40,7 @@ public class LobbyController : MonoBehaviour
 
             ClientController.Instance.StartNewGame(game, (result) =>
             {
-                SceneManager.LoadScene("2DBoard", LoadSceneMode.Single);
+                SceneManager.LoadScene("WaitingScreen", LoadSceneMode.Single);
             });
 
         }

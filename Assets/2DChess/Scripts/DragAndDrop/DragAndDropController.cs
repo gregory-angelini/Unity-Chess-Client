@@ -49,25 +49,28 @@ public class DragAndDropController : MonoBehaviour
     {
         if (state == State.none)
         {
-            if (Chess2DController.Instance.Chess.GetCurrentPlayerColor() != Chess.GetFigureColor(obj.GetComponent<Figure2D>().Id))
+            if (ClientController.Instance.PlayerColor != ClientController.Instance.GameState.lastMoveColor)
             {
-                Debug.Log($"{Chess2DController.Instance.Chess.GetCurrentPlayerColor()} player must move next");
-                return;
+                if (Chess2DController.Instance.Chess.GetCurrentPlayerColor() != Chess.GetFigureColor(obj.GetComponent<Figure2D>().Id))
+                {
+                    Debug.Log($"{Chess2DController.Instance.Chess.GetCurrentPlayerColor()} player must move next");
+                    return;
+                }
+
+                draggedObject = obj;
+                state = State.drag;
+
+                Vector2 pos = (draggedObject.GetComponent<Figure2D>().GetWorldPosition() - Board2DBuilder.Instance.BoardStartPos) / Board2DBuilder.Instance.SquareSize;
+                startDragPos = new Vector2(Mathf.Round(pos.x), Mathf.Round(pos.y));
+
+                //Debug.Log($"Start drag: { draggedObject.name }: [{ StartDragPos.x }, { StartDragPos.y }]");
+
+                DragArgs args = new DragArgs();
+                args.draggedObject = draggedObject;
+                args.startDragPos = startDragPos;
+                args.result = true;
+                OnStartDragFigure?.Invoke(this, args);
             }
-
-            draggedObject = obj;
-            state = State.drag;
-
-            Vector2 pos = (draggedObject.GetComponent<Figure2D>().GetWorldPosition() - Board2DBuilder.Instance.BoardStartPos) / Board2DBuilder.Instance.SquareSize;
-            startDragPos = new Vector2(Mathf.Round(pos.x), Mathf.Round(pos.y));
-            
-            //Debug.Log($"Start drag: { draggedObject.name }: [{ StartDragPos.x }, { StartDragPos.y }]");
-
-            DragArgs args = new DragArgs();
-            args.draggedObject = draggedObject;
-            args.startDragPos = startDragPos;
-            args.result = true;
-            OnStartDragFigure?.Invoke(this, args);
         }
     }
 
