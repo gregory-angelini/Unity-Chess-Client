@@ -10,6 +10,8 @@ public class Board2DBuilder : MonoBehaviour
     Figure2D[,] figures = new Figure2D[8, 8];
     public Vector2 SquareSize { get; private set; } = new Vector2(118f, 118f);
     [SerializeField] Transform figureParent;
+    [SerializeField] Transform verticalLabels;
+    [SerializeField] Transform horizontalLabels;
 
     void Awake()
     {
@@ -27,6 +29,30 @@ public class Board2DBuilder : MonoBehaviour
     public Vector2 GetWorldPosOfSquare(int x, int y)
     {
         return BoardStartPos + new Vector2(x * SquareSize.x, y * SquareSize.y);
+    }
+
+    public void FlipBoard()
+    {
+        figureParent.localRotation *= Quaternion.Euler(0, 0, 180);
+        
+        foreach(var row in figures.Rows())
+            foreach(var figure in row)
+                if(figure != null)
+                    figure.transform.localRotation *= Quaternion.Euler(0, 0, 180);
+
+
+        verticalLabels.localRotation *= Quaternion.Euler(180, 0, 0);
+        foreach(Transform label in verticalLabels)
+        {
+            label.localRotation *= Quaternion.Euler(180, 0, 0);
+        }
+
+        horizontalLabels.localRotation *= Quaternion.Euler(0, 180, 0);
+
+        foreach (Transform label in horizontalLabels)
+        {
+            label.localRotation *= Quaternion.Euler(0, 180, 0);
+        }
     }
 
     public void UpdateBoard()

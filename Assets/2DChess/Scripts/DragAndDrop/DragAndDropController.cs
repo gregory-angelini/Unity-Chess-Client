@@ -49,7 +49,7 @@ public class DragAndDropController : MonoBehaviour
     {
         if (state == State.none)
         {
-            if (ClientController.Instance.PlayerColor != ClientController.Instance.GameState.lastMoveColor)
+            if (Chess2DController.Instance.Chess.GetCurrentPlayerColor().ToString() == ClientController.Instance.PlayerColor)
             {
                 if (Chess2DController.Instance.Chess.GetCurrentPlayerColor() != Chess.GetFigureColor(obj.GetComponent<Figure2D>().Id))
                 {

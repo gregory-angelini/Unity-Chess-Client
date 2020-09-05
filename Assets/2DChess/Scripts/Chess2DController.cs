@@ -30,6 +30,7 @@ public class Chess2DController : MonoBehaviour
     HighlightSquare[,] squares = new HighlightSquare[8, 8];
     SynchronizationContext mainSyncContext;
     float refreshHz = 2f;// in seconds
+    public bool ShowTips { get; set; } = false;
 
     void Awake()
     {
@@ -49,18 +50,20 @@ public class Chess2DController : MonoBehaviour
 
         CreateSquares();
 
-
         Chess = new Chess(ClientController.Instance.GameInfo.FEN);
         Board2DBuilder.Instance.Build(Chess);
-        ShowLegalFigures();
 
-        // TODO: need remove this
+
         //System.Net.ServicePointManager.ServerCertificateValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
 
-        //if (ClientController.Instance.PlayerColor == "black")
-        //{
-        //    InvokeRepeating("RefreshGame", refreshHz, refreshHz);
-        //}
+        if (Chess.GetCurrentPlayerColor().ToString() == ClientController.Instance.PlayerColor)
+        {
+            ShowLegalFigures();
+        }
+
+        if (ClientController.Instance.PlayerColor == "black")
+            Board2DBuilder.Instance.FlipBoard();
+
         InvokeRepeating("RefreshGame", refreshHz, refreshHz); // we have to do it in case of reconnection (we'are white and made the last move)
     }
 
@@ -70,13 +73,13 @@ public class Chess2DController : MonoBehaviour
 
         ClientController.Instance.UpdateGameState((result) =>
         {
-            if (result.lastMoveColor != ClientController.Instance.PlayerColor)// our turn begins
+            if (!string.IsNullOrEmpty(result.lastMoveColor) && result.lastMoveColor != ClientController.Instance.PlayerColor)// our turn begins
             {
                 Chess = new Chess(ClientController.Instance.GameState.FEN);
                 Board2DBuilder.Instance.UpdateBoard();
                 ShowLegalFigures();
 
-                ShowLastMove(result.lastMove, false);
+                ShowLastMove(result.lastMove);
 
                 CancelInvoke("RefreshGame");
             }
@@ -85,6 +88,8 @@ public class Chess2DController : MonoBehaviour
 
     void ShowLegalFigures()
     {
+        if (!ShowTips) return;
+
         HideMoves();
         int x, y;
 
@@ -95,8 +100,11 @@ public class Chess2DController : MonoBehaviour
         }
     }
 
-    void ShowLastMove(string fenMove, bool opponent)
+    void ShowLastMove(string fenMove)
     {
+        if (string.IsNullOrEmpty(fenMove)) 
+            return;
+
         string from = fenMove.Substring(1, 2);
         string to = fenMove.Substring(3, 2);
         int x1, y1, x2, y2;
@@ -104,12 +112,13 @@ public class Chess2DController : MonoBehaviour
         Chess.SquareNameToSquarePos(from, out x1, out y1);
         Chess.SquareNameToSquarePos(to, out x2, out y2);
 
-        ShowLegalSquare(x1, y1, !opponent);
-        ShowLegalSquare(x2, y2, !opponent);
+        ShowLegalSquare(x1, y1, true);
+        ShowLegalSquare(x2, y2, true);
     }
 
     void ShowLegalMoves(Figure figure, int figureX, int figureY)
     {
+        if (!ShowTips) return;
         //Debug.Log($"{figure} in pos [{figureX}, {figureY}]");
 
         HideMoves();
@@ -244,13 +253,16 @@ public class Chess2DController : MonoBehaviour
                     Debug.Log($"{Chess.GetCurrentPlayerColor()} player in check");
 
                 HideMoves();
-                ShowLastMove(result.lastMove, false);
+                ShowLastMove(result.lastMove);
 
                 InvokeRepeating("RefreshGame", refreshHz, refreshHz);// the opponent's turn begins
                 OnMoveResult?.Invoke(this, resultArgs);
             });
         }
         else // illegal move
+        {
             ShowLegalFigures();
+            ShowLastMove(ClientController.Instance.GameState.lastMove);
+        }
     }
 }
