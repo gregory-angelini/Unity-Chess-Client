@@ -57,6 +57,7 @@ public class ClientController : MonoBehaviour
         AuthenticatePlayer(player, (result) =>
         {
             PlayerInfo = result;
+            LobbyController.Instance.SetPlayerName(result.playerName);
         });
     }
 

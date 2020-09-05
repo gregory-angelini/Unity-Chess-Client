@@ -15,12 +15,19 @@ public class LobbyController : MonoBehaviour
     public static LobbyController Instance;
     [SerializeField] TMP_InputField playerName;
 
+
+
     void Awake()
     {
         if (Instance == null)
             Instance = this;
         else
             Destroy(gameObject);
+    }
+
+    public void SetPlayerName(string name)
+    {
+        playerName.text = name;
     }
 
     void Start()

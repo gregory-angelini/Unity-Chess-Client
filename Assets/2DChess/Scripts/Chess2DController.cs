@@ -57,10 +57,11 @@ public class Chess2DController : MonoBehaviour
         // TODO: need remove this
         //System.Net.ServicePointManager.ServerCertificateValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
 
-        if (ClientController.Instance.PlayerColor == "black")
-        {
-            InvokeRepeating("RefreshGame", refreshHz, refreshHz);
-        }
+        //if (ClientController.Instance.PlayerColor == "black")
+        //{
+        //    InvokeRepeating("RefreshGame", refreshHz, refreshHz);
+        //}
+        InvokeRepeating("RefreshGame", refreshHz, refreshHz); // we have to do it in case of reconnection (we'are white and made the last move)
     }
 
     void RefreshGame()
@@ -74,7 +75,8 @@ public class Chess2DController : MonoBehaviour
                 Chess = new Chess(ClientController.Instance.GameState.FEN);
                 Board2DBuilder.Instance.UpdateBoard();
                 ShowLegalFigures();
-                Debug.Log("cancel");
+
+                ShowLastMove(result.lastMove, false);
 
                 CancelInvoke("RefreshGame");
             }
@@ -92,7 +94,21 @@ public class Chess2DController : MonoBehaviour
             ShowLegalSquare(x, y, true);
         }
     }
-    public void ShowLegalMoves(Figure figure, int figureX, int figureY)
+
+    void ShowLastMove(string fenMove, bool opponent)
+    {
+        string from = fenMove.Substring(1, 2);
+        string to = fenMove.Substring(3, 2);
+        int x1, y1, x2, y2;
+
+        Chess.SquareNameToSquarePos(from, out x1, out y1);
+        Chess.SquareNameToSquarePos(to, out x2, out y2);
+
+        ShowLegalSquare(x1, y1, !opponent);
+        ShowLegalSquare(x2, y2, !opponent);
+    }
+
+    void ShowLegalMoves(Figure figure, int figureX, int figureY)
     {
         //Debug.Log($"{figure} in pos [{figureX}, {figureY}]");
 
@@ -227,8 +243,9 @@ public class Chess2DController : MonoBehaviour
                 else if (resultArgs.check)
                     Debug.Log($"{Chess.GetCurrentPlayerColor()} player in check");
 
-                //ShowLegalFigures();
-                HideMoves(); 
+                HideMoves();
+                ShowLastMove(result.lastMove, false);
+
                 InvokeRepeating("RefreshGame", refreshHz, refreshHz);// the opponent's turn begins
                 OnMoveResult?.Invoke(this, resultArgs);
             });
