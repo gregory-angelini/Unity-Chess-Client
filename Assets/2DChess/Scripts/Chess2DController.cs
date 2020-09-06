@@ -30,7 +30,7 @@ public class Chess2DController : MonoBehaviour
     HighlightSquare[,] squares = new HighlightSquare[8, 8];
     SynchronizationContext mainSyncContext;
     float refreshHz = 2f;// in seconds
-    public bool ShowTips { get; set; } = false;
+    public bool ShowTips = false;
 
     void Awake()
     {
@@ -69,7 +69,7 @@ public class Chess2DController : MonoBehaviour
 
     void RefreshGame()
     {
-        Debug.Log("RefreshGame");
+        //Debug.Log("RefreshGame");
 
         ClientController.Instance.UpdateGameState((result) =>
         {
@@ -77,18 +77,25 @@ public class Chess2DController : MonoBehaviour
             {
                 Chess = new Chess(ClientController.Instance.GameState.FEN);
                 Board2DBuilder.Instance.UpdateBoard();
-                ShowLegalFigures();
 
-                ShowLastMove(result.lastMove);
+                HideMoves();
+                ShowLegalFigures();
+                ShowMove(result.lastMove);
 
                 CancelInvoke("RefreshGame");
+            }
+            else
+            {
+                HideMoves();
+                ShowMove(ClientController.Instance.GameState.lastMove);
             }
         });
     }
 
     void ShowLegalFigures()
     {
-        if (!ShowTips) return;
+        if (!ShowTips) 
+            return;
 
         HideMoves();
         int x, y;
@@ -100,7 +107,7 @@ public class Chess2DController : MonoBehaviour
         }
     }
 
-    void ShowLastMove(string fenMove)
+    void ShowMove(string fenMove)
     {
         if (string.IsNullOrEmpty(fenMove)) 
             return;
@@ -253,7 +260,7 @@ public class Chess2DController : MonoBehaviour
                     Debug.Log($"{Chess.GetCurrentPlayerColor()} player in check");
 
                 HideMoves();
-                ShowLastMove(result.lastMove);
+                ShowMove(result.lastMove);
 
                 InvokeRepeating("RefreshGame", refreshHz, refreshHz);// the opponent's turn begins
                 OnMoveResult?.Invoke(this, resultArgs);
@@ -261,8 +268,12 @@ public class Chess2DController : MonoBehaviour
         }
         else // illegal move
         {
-            ShowLegalFigures();
-            ShowLastMove(ClientController.Instance.GameState.lastMove);
+            HideMoves();
+            if (Chess.GetCurrentPlayerColor().ToString() == ClientController.Instance.PlayerColor)
+            {
+                ShowLegalFigures();
+            }
+            ShowMove(ClientController.Instance.GameState.lastMove);
         }
     }
 }

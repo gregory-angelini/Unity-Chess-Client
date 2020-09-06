@@ -2006,6 +2006,7 @@ MonoBehaviour:
   HUDParent: {fileID: 2037513823}
   squarePrefab: {fileID: 4653176339374831322, guid: 0a072e045cabc2048ab165f6dee3dd3c,
     type: 3}
+  ShowTips: 0
 --- !u!1 &1090634938
 GameObject:
   m_ObjectHideFlags: 0

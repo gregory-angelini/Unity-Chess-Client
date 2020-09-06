@@ -22,7 +22,7 @@ public class ClientController : MonoBehaviour
     public GameInfo GameInfo { get; private set; }
 
     [HideInInspector]
-    public GameState GameState { get; private set; }
+    public GameState GameState { get; private set; } 
 
     [HideInInspector]
     public PlayerInfo PlayerInfo { get; private set; }
@@ -106,7 +106,9 @@ public class ClientController : MonoBehaviour
 
     public async void SendMove(string fenMove, Action<GameState> callback)
     {
-        await Client.SendMove(GameInfo.gameID, fenMove, (result) =>
+        MoveInfo moveInfo = new MoveInfo() { gameID = GameInfo.gameID, fenMove = fenMove, playerID = PlayerInfo.playerID };
+
+        await Client.SendMove(moveInfo, (result) =>
         {
             mainSyncContext.Post(s =>// runs the following code on the main thread
             {
