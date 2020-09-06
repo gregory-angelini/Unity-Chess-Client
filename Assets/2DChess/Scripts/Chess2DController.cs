@@ -5,7 +5,7 @@ using ChessCore;
 using UnityEditor;
 using System;
 using PopUp;
-
+using TMPro;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,6 +31,9 @@ public class Chess2DController : MonoBehaviour
     SynchronizationContext mainSyncContext;
     float refreshHz = 2f;// in seconds
     public bool ShowTips = false;
+    [SerializeField] TextMeshProUGUI bottomPlayerName;
+    [SerializeField] TextMeshProUGUI topPlayerName;
+
 
     void Awake()
     {
@@ -61,12 +64,31 @@ public class Chess2DController : MonoBehaviour
             ShowLegalFigures();
         }
 
+        // adapt the board to a player color
         if (ClientController.Instance.PlayerColor == "black")
             Board2DBuilder.Instance.FlipBoard();
+
+        // show player names 
+        bottomPlayerName.text = ClientController.Instance.PlayerInfo.playerName;
+       
+        ClientController.Instance.GetPlayer(GetOpponentColor(), result =>
+        {
+            topPlayerName.text = result.playerName;
+        });
 
         InvokeRepeating("RefreshGame", refreshHz, refreshHz); // we have to do it in case of reconnection (we'are white and made the last move)
     }
 
+    string GetOpponentColor()
+    {
+        if (ClientController.Instance.PlayerColor == "white")
+            return "black";
+        
+        if (ClientController.Instance.PlayerColor == "black")
+            return "white";
+
+        return "";
+    }
     void RefreshGame()
     {
         //Debug.Log("RefreshGame");

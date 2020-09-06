@@ -61,6 +61,18 @@ public class ClientController : MonoBehaviour
         });
     }
 
+    public async void GetPlayer(string color, Action<PlayerInfo> callback)
+    {
+        await Client.GetPlayer(GameInfo.gameID, color, (result) =>
+        {
+            mainSyncContext.Post(s =>// runs the following code on the main thread
+            {
+                Debug.Log(JsonConvert.SerializeObject(result));
+                callback?.Invoke(result);
+            }, null);
+        });
+    }
+
     async void AuthenticatePlayer(Player player, Action<PlayerInfo> callback)
     {
         await Client.GetPlayer(player, (result) =>
