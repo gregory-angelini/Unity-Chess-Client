@@ -50,8 +50,9 @@ public class ClientController : MonoBehaviour
     void Start()
     {
         Client = new Client(host);
-        
-        string deviceId = SystemInfo.deviceUniqueIdentifier;
+
+        int id = UnityEngine.Random.Range(1, 100000);
+        string deviceId = id.ToString();//SystemInfo.deviceUniqueIdentifier;// TEST
         Player player = new Player() { GUID = deviceId, Name = "testname1" };
 
         AuthenticatePlayer(player, (result) =>

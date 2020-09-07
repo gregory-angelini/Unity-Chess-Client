@@ -25,9 +25,6 @@ public class Chess2DController : MonoBehaviour
     public Chess Chess { get; private set; }
     public static Chess2DController Instance;
     //[SerializeField] string startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";//"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-    [SerializeField] Transform HUDParent;
-    [SerializeField] HighlightSquare squarePrefab;
-    HighlightSquare[,] squares = new HighlightSquare[8, 8];
     SynchronizationContext mainSyncContext;
     float refreshHz = 2f;// in seconds
     public bool ShowTips = false;
@@ -46,12 +43,12 @@ public class Chess2DController : MonoBehaviour
         mainSyncContext = SynchronizationContext.Current;// Context of main thread
     }
 
-    async void Start()
+    void Start()
     {
         DragAndDropController.Instance.OnStartDragFigure += OnStartDragFigure;
         DragAndDropController.Instance.OnEndDragFigure += OnEndDragFigure;
 
-        CreateSquares();
+        
 
         Chess = new Chess(ClientController.Instance.GameInfo.FEN);
         Board2DBuilder.Instance.Build(Chess);
@@ -59,7 +56,7 @@ public class Chess2DController : MonoBehaviour
 
         //System.Net.ServicePointManager.ServerCertificateValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
 
-        if (Chess.GetCurrentPlayerColor().ToString() == ClientController.Instance.PlayerColor)
+        if (Chess.GetMoveColor().ToString() == ClientController.Instance.PlayerColor)
         {
             ShowLegalFigures();
         }
@@ -67,6 +64,7 @@ public class Chess2DController : MonoBehaviour
         // adapt the board to a player color
         if (ClientController.Instance.PlayerColor == "black")
             Board2DBuilder.Instance.FlipBoard();
+
 
         // show player names 
         bottomPlayerName.text = ClientController.Instance.PlayerInfo.playerName;
@@ -76,7 +74,9 @@ public class Chess2DController : MonoBehaviour
             topPlayerName.text = result.playerName;
         });
 
-        InvokeRepeating("RefreshGame", refreshHz, refreshHz); // we have to do it in case of reconnection (we'are white and made the last move)
+        if((ClientController.Instance.PlayerColor == "black" && Chess.GetMoveColor() == ChessCore.Color.white) ||
+           (ClientController.Instance.PlayerColor == "white" && Chess.GetMoveColor() == ChessCore.Color.black))
+        InvokeRepeating("RefreshGame", refreshHz, refreshHz); 
     }
 
     string GetOpponentColor()
@@ -100,7 +100,7 @@ public class Chess2DController : MonoBehaviour
                 Chess = new Chess(ClientController.Instance.GameState.FEN);
                 Board2DBuilder.Instance.UpdateBoard();
 
-                HideMoves();
+                Board2DBuilder.Instance.HideMoves();
                 ShowLegalFigures();
                 ShowMove(result.lastMove);
 
@@ -108,7 +108,7 @@ public class Chess2DController : MonoBehaviour
             }
             else
             {
-                HideMoves();
+                Board2DBuilder.Instance.HideMoves();
                 ShowMove(ClientController.Instance.GameState.lastMove);
             }
         });
@@ -119,13 +119,13 @@ public class Chess2DController : MonoBehaviour
         if (!ShowTips) 
             return;
 
-        HideMoves();
+        Board2DBuilder.Instance.HideMoves();
         int x, y;
 
         foreach(string move in Chess.YieldAllMoves())
         {
             Chess.SquareNameToSquarePos(move.Substring(1, 2), out x, out y);
-            ShowLegalSquare(x, y, true);
+            Board2DBuilder.Instance.ShowLegalSquare(x, y, true);
         }
     }
 
@@ -141,8 +141,8 @@ public class Chess2DController : MonoBehaviour
         Chess.SquareNameToSquarePos(from, out x1, out y1);
         Chess.SquareNameToSquarePos(to, out x2, out y2);
 
-        ShowLegalSquare(x1, y1, true);
-        ShowLegalSquare(x2, y2, true);
+        Board2DBuilder.Instance.ShowLegalSquare(x1, y1, true);
+        Board2DBuilder.Instance.ShowLegalSquare(x2, y2, true);
     }
 
     void ShowLegalMoves(Figure figure, int figureX, int figureY)
@@ -150,7 +150,7 @@ public class Chess2DController : MonoBehaviour
         if (!ShowTips) return;
         //Debug.Log($"{figure} in pos [{figureX}, {figureY}]");
 
-        HideMoves();
+        Board2DBuilder.Instance.HideMoves();
         int x, y;
 
         foreach (string move in Chess.YieldAllMoves())
@@ -163,63 +163,23 @@ public class Chess2DController : MonoBehaviour
                 {
                     Chess.SquareNameToSquarePos(move.Substring(3, 2), out x, out y);
 
-                    if (Chess.FigureAt(x, y) != Figure.none)// target square is not empty
+                    if (Chess.FigureAt(x, y) != Figure.none)
                     {
-                        ShowLegalSquare(x, y, false);
+                        Board2DBuilder.Instance.ShowLegalSquare(x, y, false);
                     }
                     else
                     {
-                        bool enPassant = false;
                         int epX, epY;
-                        if (Chess.IsEnPassant(out epX, out epY))
-                        {
-                            enPassant = x == epX && y == epY;
-                        }
-                        ShowLegalSquare(x, y, !enPassant);
+                        Chess.SquareNameToSquarePos(Chess.GetEnPassant(), out epX, out epY);
+                        bool enPassant = x == epX && y == epY && (figure == Figure.whitePawn || figure == Figure.blackPawn);
+                        Board2DBuilder.Instance.ShowLegalSquare(x, y, !enPassant);
                     }
                 }
             }
         }
     }
 
-    void CreateSquares()
-    {
-        HighlightSquare square;
 
-        for (int x = 0; x < 8; x++)
-        {
-            for(int y = 0; y < 8; y++)
-            {
-                square = Instantiate(squarePrefab);
-                square.transform.SetParent(HUDParent, false);
-
-                square.Hide();
-
-                Vector3 pos = Board2DBuilder.Instance.BoardStartPos + new Vector2(x * Board2DBuilder.Instance.SquareSize.x, y * Board2DBuilder.Instance.SquareSize.y);
-                square.SetWorldPosition(pos);
-                squares[x, y] = square;
-            }
-        }
-    }
-     
-    void ShowLegalSquare(int x, int y, bool emptyOrEnemy)
-    {
-        if (emptyOrEnemy) 
-            squares[x, y].ShowEmptySquare();
-        else 
-            squares[x, y].ShowEnemySquare();
-    }
-     
-    void HideMoves()
-    {
-        for (int x = 0; x < 8; x++)
-        {
-            for (int y = 0; y < 8; y++)
-            {
-                squares[x, y].Hide();
-            }
-        }
-    }
 
     void OnDestroy()
     {
@@ -253,7 +213,7 @@ public class Chess2DController : MonoBehaviour
                 if (promotion)
                 {
                     FigurePromotionPopUp popUp = GuiController.Instance.ShowFigurePromotion() as FigurePromotionPopUp;
-                    popUp.Run(Chess.GetCurrentPlayerColor(), (Figure figure) =>
+                    popUp.Run(Chess.GetMoveColor(), (Figure figure) =>
                     {
                         args.fenMove += (char)figure;
                         Debug.Log("fenMove:" + args.fenMove);
@@ -269,19 +229,19 @@ public class Chess2DController : MonoBehaviour
                 Debug.Log($"new state: {Chess.fen}");
 
                 ResultArgs resultArgs = new ResultArgs();
-                resultArgs.player = Chess.GetCurrentPlayerColor();
+                resultArgs.player = Chess.GetMoveColor();
                 resultArgs.checkmate = Chess.IsCheckmate();
                 resultArgs.check = Chess.IsCheck();
                 resultArgs.stalemate = Chess.IsStalemate();
 
                 if (resultArgs.checkmate)
-                    Debug.Log($"{Chess.GetCurrentPlayerColor()} player in checkmate");
+                    Debug.Log($"{Chess.GetMoveColor()} player in checkmate");
                 else if (resultArgs.stalemate)
-                    Debug.Log($"{Chess.GetCurrentPlayerColor()} player in stalemate");
+                    Debug.Log($"{Chess.GetMoveColor()} player in stalemate");
                 else if (resultArgs.check)
-                    Debug.Log($"{Chess.GetCurrentPlayerColor()} player in check");
+                    Debug.Log($"{Chess.GetMoveColor()} player in check");
 
-                HideMoves();
+                Board2DBuilder.Instance.HideMoves();
                 ShowMove(result.lastMove);
 
                 InvokeRepeating("RefreshGame", refreshHz, refreshHz);// the opponent's turn begins
@@ -290,8 +250,8 @@ public class Chess2DController : MonoBehaviour
         }
         else // illegal move
         {
-            HideMoves();
-            if (Chess.GetCurrentPlayerColor().ToString() == ClientController.Instance.PlayerColor)
+            Board2DBuilder.Instance.HideMoves();
+            if (Chess.GetMoveColor().ToString() == ClientController.Instance.PlayerColor)
             {
                 ShowLegalFigures();
             }

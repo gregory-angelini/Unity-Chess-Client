@@ -37,11 +37,15 @@ public class Figure2D : MonoBehaviour
         image = GetComponent<Image>();
     }
 
-    public void SetWorldPosition(Vector2 pos)
+    public void SetPosition(Vector2 pos)
     {
         transform.localPosition = pos;
     }
 
+    public void SetRotation(Quaternion rot)
+    {
+        transform.localRotation = rot;
+    }
     public Vector2 GetWorldPosition()
     {
         return transform.localPosition;

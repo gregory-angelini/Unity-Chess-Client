@@ -49,11 +49,11 @@ public class DragAndDropController : MonoBehaviour
     {
         if (state == State.none)
         {
-            if (Chess2DController.Instance.Chess.GetCurrentPlayerColor().ToString() == ClientController.Instance.PlayerColor)
+            if (Chess2DController.Instance.Chess.GetMoveColor().ToString() == ClientController.Instance.PlayerColor)
             {
-                if (Chess2DController.Instance.Chess.GetCurrentPlayerColor() != Chess.GetFigureColor(obj.GetComponent<Figure2D>().Id))
+                if (Chess2DController.Instance.Chess.GetMoveColor() != Chess.GetFigureColor(obj.GetComponent<Figure2D>().Id))
                 {
-                    Debug.Log($"{Chess2DController.Instance.Chess.GetCurrentPlayerColor()} player must move next");
+                    Debug.Log($"{Chess2DController.Instance.Chess.GetMoveColor()} player must move next");
                     return;
                 }
 
@@ -100,7 +100,7 @@ public class DragAndDropController : MonoBehaviour
             else
             {
                 Vector2 oldPos = Board2DBuilder.Instance.GetWorldPosOfSquare((int)startDragPos.x, (int)startDragPos.y);
-                draggedObject.GetComponent<Figure2D>().SetWorldPosition(oldPos);
+                draggedObject.GetComponent<Figure2D>().SetPosition(oldPos);
             }
             
             OnEndDragFigure?.Invoke(this, args);
