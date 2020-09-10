@@ -51,8 +51,8 @@ public class ClientController : MonoBehaviour
     {
         Client = new Client(host);
 
-        int id = UnityEngine.Random.Range(1, 100000);
-        string deviceId = id.ToString();//SystemInfo.deviceUniqueIdentifier;// TEST
+        //int id = UnityEngine.Random.Range(1, 100000);
+        string deviceId = SystemInfo.deviceUniqueIdentifier;// "test123";// id.ToString();//SystemInfo.deviceUniqueIdentifier;// TEST
         Player player = new Player() { GUID = deviceId, Name = "testname1" };
 
         AuthenticatePlayer(player, (result) =>
@@ -64,55 +64,75 @@ public class ClientController : MonoBehaviour
 
     public async void GetPlayer(string color, Action<PlayerInfo> callback)
     {
-        await Client.GetPlayer(GameInfo.gameID, color, (result) =>
+        await Client.GetPlayer(GameInfo.gameID, color, (result, content) =>
         {
             mainSyncContext.Post(s =>// runs the following code on the main thread
             {
-                Debug.Log(JsonConvert.SerializeObject(result));
-                callback?.Invoke(result);
+                if (result == Client.Result.Ok)
+                    Debug.Log("move has been applied");
+                else
+                    return;
+
+                Debug.Log(JsonConvert.SerializeObject(content));
+                callback?.Invoke(content);
             }, null);
         });
     }
 
     async void AuthenticatePlayer(Player player, Action<PlayerInfo> callback)
     {
-        await Client.GetPlayer(player, (result) =>
+        await Client.GetPlayer(player, (result, content) =>
         {
             mainSyncContext.Post(s =>// runs the following code on the main thread
             {
-                Debug.Log(JsonConvert.SerializeObject(result));
-                callback?.Invoke(result);
+                if (result == Client.Result.Created)
+                    Debug.Log("new account has been created");
+                else if (result == Client.Result.Ok)
+                    Debug.Log("authentication succeeded");
+                else
+                    return;
+
+                Debug.Log(JsonConvert.SerializeObject(content));
+                callback?.Invoke(content);
             }, null);
         });
     }
 
     public async void StartNewGame(RequestedGame game, Action<GameInfo> callback)
     {
-        await Client.FindGame(game, (result) =>
+        await Client.FindGame(game, (result, content) =>
         {
             mainSyncContext.Post(s =>// runs the following code on the main thread
             {
+                if (result == Client.Result.Created)
+                    Debug.Log("new game has been created");
+                else if (result == Client.Result.Ok)
+                    Debug.Log("joined an existing game");
+                else
+                    return;
+
                 PlayerColor = game.playerColor;
-                GameInfo = result;
-                Debug.Log(JsonConvert.SerializeObject(result));
-                callback?.Invoke(result);
+                GameInfo = content;
+                Debug.Log(JsonConvert.SerializeObject(content));
+                callback?.Invoke(content);
             }, null);
         });
     }
 
     public async void UpdateGameState(Action<GameState> callback)
     {
-        await Client.GetGame(GameInfo.gameID, (result) =>
+        await Client.GetGame(GameInfo.gameID, (result, content) =>
         {
             mainSyncContext.Post(s =>// runs the following code on the main thread
             {
-                GameState = result;
-                
-                if(GameState.status == "play")
-                {
-                    Debug.Log(JsonConvert.SerializeObject(result));
-                    callback?.Invoke(result);
-                }
+                if (result == Client.Result.Ok)
+                    Debug.Log("game has been updated");
+                else
+                    return;
+
+                GameState = content;  
+                Debug.Log(JsonConvert.SerializeObject(content));
+                callback?.Invoke(content);
             }, null);
         });
     }
@@ -121,13 +141,18 @@ public class ClientController : MonoBehaviour
     {
         MoveInfo moveInfo = new MoveInfo() { gameID = GameInfo.gameID, fenMove = fenMove, playerID = PlayerInfo.playerID };
 
-        await Client.SendMove(moveInfo, (result) =>
+        await Client.SendMove(moveInfo, (result, content) =>
         {
             mainSyncContext.Post(s =>// runs the following code on the main thread
             {
-                GameState = result;
-                Debug.Log(JsonConvert.SerializeObject(result));
-                callback?.Invoke(result);
+                if (result == Client.Result.Created)
+                    Console.WriteLine("move has been applied");
+                else
+                    return;
+
+                GameState = content;
+                Debug.Log(JsonConvert.SerializeObject(content));
+                callback?.Invoke(content);
             }, null);
         });
     }

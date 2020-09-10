@@ -10,6 +10,7 @@ namespace PopUp
         [SerializeField] Canvas popup;
         [Header("Popup prefabs", order = 1)]
         [SerializeField] BasicPopUp figurePromotionPrefab;
+        [SerializeField] BasicPopUp messagePrefab;
         public static GuiController Instance;
 
 
@@ -26,6 +27,13 @@ namespace PopUp
         public BasicPopUp ShowFigurePromotion()
         {
             BasicPopUp controller = CreatePopUp(figurePromotionPrefab);
+            controller.ShowWindow();
+            return controller;
+        }
+
+        public BasicPopUp ShowMessage()
+        {
+            BasicPopUp controller = CreatePopUp(messagePrefab);
             controller.ShowWindow();
             return controller;
         }

@@ -19,7 +19,8 @@ public class WaitingController : MonoBehaviour
         //Debug.Log("RefreshGameStatus");
         ClientController.Instance.UpdateGameState((result) =>
         {
-            SceneManager.LoadScene("2DBoard", LoadSceneMode.Single);
+            if (result.status == "play")
+                SceneManager.LoadScene("2DBoard", LoadSceneMode.Single);
         });
     }
 

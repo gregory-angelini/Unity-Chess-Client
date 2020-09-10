@@ -1202,7 +1202,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   popup: {fileID: 280165312}
-  figurePromotionPrefab: {fileID: 4078595295917184228, guid: dd89e6b8d9ce74d4b8eefe9b066fd838,
+  figurePromotionPrefab: {fileID: 4078595295917184228, guid: 445ae5e28c40623439774ab0d98638d6,
+    type: 3}
+  messagePrefab: {fileID: 482218514286696175, guid: dd89e6b8d9ce74d4b8eefe9b066fd838,
     type: 3}
 --- !u!114 &280165310
 MonoBehaviour:

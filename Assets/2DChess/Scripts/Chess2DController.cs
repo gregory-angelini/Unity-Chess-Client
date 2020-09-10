@@ -8,7 +8,7 @@ using PopUp;
 using TMPro;
 using System.Threading;
 using System.Threading.Tasks;
-
+using UnityEngine.SceneManagement;
 
 public class Chess2DController : MonoBehaviour
 {
@@ -89,6 +89,42 @@ public class Chess2DController : MonoBehaviour
 
         return "";
     }
+
+    IEnumerator Checkmate(string player)
+    {
+        Debug.Log($"{Chess.GetMoveColor()} player in checkmate");
+        CancelInvoke("RefreshGame");
+
+        MessagePopUp popUp = GuiController.Instance.ShowMessage() as MessagePopUp;
+        
+        popUp.Message = player + " is checkmated";
+
+        popUp.AddButton("Restart", () =>
+        {
+            popUp.CloseWindow();
+            SceneManager.LoadScene("Lobby", LoadSceneMode.Single);
+        });
+
+        yield return new WaitForClosing(popUp); // conditions for stopping the coroutine
+    }
+
+    IEnumerator Stalemate()
+    {
+        Debug.Log($"{Chess.GetMoveColor()} player in stalemate");
+        CancelInvoke("RefreshGame");
+
+        MessagePopUp popUp = GuiController.Instance.ShowMessage() as MessagePopUp;
+
+        popUp.AddButton("Restart", () =>
+        {
+            popUp.CloseWindow();
+            SceneManager.LoadScene("Lobby", LoadSceneMode.Single);
+        });
+
+        yield return new WaitForClosing(popUp); // conditions for stopping the coroutine
+    }
+
+
     void RefreshGame()
     {
         //Debug.Log("RefreshGame");
@@ -101,9 +137,9 @@ public class Chess2DController : MonoBehaviour
                 Board2DBuilder.Instance.UpdateBoard();
 
                 Board2DBuilder.Instance.HideMoves();
-                ShowLegalFigures();
+                ShowLegalFigures(); 
                 ShowMove(result.lastMove);
-
+                
                 CancelInvoke("RefreshGame");
             }
             else
@@ -234,17 +270,31 @@ public class Chess2DController : MonoBehaviour
                 resultArgs.check = Chess.IsCheck();
                 resultArgs.stalemate = Chess.IsStalemate();
 
-                if (resultArgs.checkmate)
+                /*if (resultArgs.checkmate)
                     Debug.Log($"{Chess.GetMoveColor()} player in checkmate");
                 else if (resultArgs.stalemate)
                     Debug.Log($"{Chess.GetMoveColor()} player in stalemate");
                 else if (resultArgs.check)
                     Debug.Log($"{Chess.GetMoveColor()} player in check");
+                */
 
                 Board2DBuilder.Instance.HideMoves();
                 ShowMove(result.lastMove);
 
-                InvokeRepeating("RefreshGame", refreshHz, refreshHz);// the opponent's turn begins
+                if (result.status == "completed")
+                {
+                    if (result.result == "checkmate")
+                        StartCoroutine(Checkmate(ClientController.Instance.GameState.lastMoveColor));
+                    else if (result.result == "stalemate")
+                        StartCoroutine(Stalemate());
+                }
+                else 
+                {
+                    if (Chess.IsCheck())// TODO: server must make this decision
+                        Debug.Log($"{Chess.GetMoveColor()} player in check");
+                
+                    InvokeRepeating("RefreshGame", refreshHz, refreshHz);// the opponent's turn begins
+                }
                 OnMoveResult?.Invoke(this, resultArgs);
             });
         }
