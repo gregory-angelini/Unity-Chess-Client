@@ -25,14 +25,14 @@ public class LobbyController : MonoBehaviour
             Destroy(gameObject);
     }
 
-    public void SetPlayerName(string name)
-    {
-        playerName.text = name;
-    }
-
     void Start()
     {
         playerName.characterLimit = 20;
+    }
+
+    public void SetPlayerName(string name)
+    {
+        playerName.text = name;
     }
 
     public void OnPlayButton()

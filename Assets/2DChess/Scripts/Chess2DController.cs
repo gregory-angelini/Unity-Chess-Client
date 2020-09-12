@@ -39,7 +39,6 @@ public class Chess2DController : MonoBehaviour
         else
             Destroy(gameObject);
 
-
         mainSyncContext = SynchronizationContext.Current;// Context of main thread
     }
 
@@ -48,11 +47,8 @@ public class Chess2DController : MonoBehaviour
         DragAndDropController.Instance.OnStartDragFigure += OnStartDragFigure;
         DragAndDropController.Instance.OnEndDragFigure += OnEndDragFigure;
 
-        
-
         Chess = new Chess(ClientController.Instance.GameInfo.FEN);
         Board2DBuilder.Instance.Build(Chess);
-
 
         //System.Net.ServicePointManager.ServerCertificateValidationCallback = (message, cert, chain, sslPolicyErrors) => true;
 
@@ -65,7 +61,6 @@ public class Chess2DController : MonoBehaviour
         if (ClientController.Instance.PlayerColor == "black")
             Board2DBuilder.Instance.FlipBoard();
 
-
         // show player names 
         bottomPlayerName.text = ClientController.Instance.PlayerInfo.playerName;
        
@@ -76,8 +71,33 @@ public class Chess2DController : MonoBehaviour
 
         if((ClientController.Instance.PlayerColor == "black" && Chess.GetMoveColor() == ChessCore.Color.white) ||
            (ClientController.Instance.PlayerColor == "white" && Chess.GetMoveColor() == ChessCore.Color.black))
-        InvokeRepeating("RefreshGame", refreshHz, refreshHz); 
+        InvokeRepeating("RefreshGame", refreshHz, refreshHz);
     }
+
+    public void OnResignButton()
+    {
+        ClientController.Instance.Resign((result) =>
+        {
+            Resign(GetOpponentColor());
+        });
+    }
+
+    void Resign(string playerName)
+    {
+        Debug.Log($"{Chess.GetMoveColor()} resigned");
+        CancelInvoke("RefreshGame");
+
+        MessagePopUp popUp = GuiController.Instance.ShowMessage() as MessagePopUp;
+
+        popUp.Message = playerName + " win";
+
+        popUp.AddButton("Restart", () =>
+        {
+            popUp.CloseWindow();
+            SceneManager.LoadScene("Lobby", LoadSceneMode.Single);
+        });
+    }
+
 
     string GetOpponentColor()
     {
@@ -97,7 +117,7 @@ public class Chess2DController : MonoBehaviour
 
         MessagePopUp popUp = GuiController.Instance.ShowMessage() as MessagePopUp;
         
-        popUp.Message = player + " is checkmated";
+        popUp.Message = player + " win";
 
         popUp.AddButton("Restart", () =>
         {
@@ -115,6 +135,8 @@ public class Chess2DController : MonoBehaviour
 
         MessagePopUp popUp = GuiController.Instance.ShowMessage() as MessagePopUp;
 
+        popUp.Message = "Draw";
+
         popUp.AddButton("Restart", () =>
         {
             popUp.CloseWindow();
@@ -127,7 +149,7 @@ public class Chess2DController : MonoBehaviour
 
     void RefreshGame()
     {
-        //Debug.Log("RefreshGame");
+        Debug.Log("RefreshGame");
 
         ClientController.Instance.UpdateGameState((result) =>
         {
@@ -146,6 +168,21 @@ public class Chess2DController : MonoBehaviour
             {
                 Board2DBuilder.Instance.HideMoves();
                 ShowMove(ClientController.Instance.GameState.lastMove);
+            }
+
+            if (result.status == "completed")
+            {
+                if (result.result == "checkmate")
+                    StartCoroutine(Checkmate(ClientController.Instance.GameState.lastMoveColor));
+                else if (result.result == "stalemate")
+                    StartCoroutine(Stalemate());
+                else if (result.result == "resign")
+                    Resign(ClientController.Instance.GameState.lastMoveColor);
+            }
+            else
+            {
+                if (Chess.IsCheck())// TODO: server must make this decision
+                    Debug.Log($"{Chess.GetMoveColor()} player in check");
             }
         });
     }
@@ -168,6 +205,9 @@ public class Chess2DController : MonoBehaviour
     void ShowMove(string fenMove)
     {
         if (string.IsNullOrEmpty(fenMove)) 
+            return;
+
+        if (fenMove == "resign") // TODO: remove this (we store 'result' in fenMove)
             return;
 
         string from = fenMove.Substring(1, 2);
@@ -281,20 +321,8 @@ public class Chess2DController : MonoBehaviour
                 Board2DBuilder.Instance.HideMoves();
                 ShowMove(result.lastMove);
 
-                if (result.status == "completed")
-                {
-                    if (result.result == "checkmate")
-                        StartCoroutine(Checkmate(ClientController.Instance.GameState.lastMoveColor));
-                    else if (result.result == "stalemate")
-                        StartCoroutine(Stalemate());
-                }
-                else 
-                {
-                    if (Chess.IsCheck())// TODO: server must make this decision
-                        Debug.Log($"{Chess.GetMoveColor()} player in check");
+                InvokeRepeating("RefreshGame", refreshHz, refreshHz);// the opponent's turn begins
                 
-                    InvokeRepeating("RefreshGame", refreshHz, refreshHz);// the opponent's turn begins
-                }
                 OnMoveResult?.Invoke(this, resultArgs);
             });
         }

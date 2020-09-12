@@ -70,6 +70,7 @@ public class Board2DBuilder : MonoBehaviour
         return BoardStartPos + new Vector2(x * SquareSize.x, y * SquareSize.y);
     }
 
+
     public void FlipBoard()
     {
         HUDParent.transform.localRotation *= Quaternion.Euler(0, 0, 180);

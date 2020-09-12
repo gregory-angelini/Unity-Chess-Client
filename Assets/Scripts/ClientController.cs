@@ -137,6 +137,26 @@ public class ClientController : MonoBehaviour
         });
     }
 
+    public async void Resign(Action<GameState> callback)
+    {
+        MoveInfo moveInfo = new MoveInfo() { gameID = GameInfo.gameID, fenMove = "resign", playerID = PlayerInfo.playerID, resignOffer = true };
+
+        await Client.SendMove(moveInfo, (result, content) =>
+        {
+            mainSyncContext.Post(s =>// runs the following code on the main thread
+            {
+                if (result == Client.Result.Created)
+                    Console.WriteLine("move has been applied");
+                else
+                    return;
+
+                GameState = content;
+                Debug.Log(JsonConvert.SerializeObject(content));
+                callback?.Invoke(content);
+            }, null);
+        });
+    }
+
     public async void SendMove(string fenMove, Action<GameState> callback)
     {
         MoveInfo moveInfo = new MoveInfo() { gameID = GameInfo.gameID, fenMove = fenMove, playerID = PlayerInfo.playerID };

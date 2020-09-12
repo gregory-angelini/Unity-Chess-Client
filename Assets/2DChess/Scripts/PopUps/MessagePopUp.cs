@@ -36,12 +36,11 @@ public class MessagePopUp : BasicPopUp
         TextMeshProUGUI buttonName = button.GetComponentInChildren<TextMeshProUGUI>();
         buttonName.text = name;
 
-        button.transform.SetParent(transform, false);
+        button.transform.SetParent(parent, false);
 
         button.onClick.AddListener(() =>
         {
             callback?.Invoke();
-            CloseWindow();
         });
     }
 }
