@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 
 public class ClientController : MonoBehaviour
 {
+    public static ClientController Instance;
     [SerializeField] string host = "http://localhost:44334/api/";
 
 
@@ -27,10 +28,8 @@ public class ClientController : MonoBehaviour
     [HideInInspector]
     public PlayerInfo PlayerInfo { get; private set; }
 
-
     SynchronizationContext mainSyncContext;
-    public static ClientController Instance;
-
+    
 
     void Awake()
     {
@@ -50,17 +49,8 @@ public class ClientController : MonoBehaviour
     void Start()
     {
         Client = new Client(host);
-
-        //int id = UnityEngine.Random.Range(1, 100000);
-        string deviceId = SystemInfo.deviceUniqueIdentifier;// "test123";// id.ToString();//SystemInfo.deviceUniqueIdentifier;// TEST
-        Player player = new Player() { GUID = deviceId, Name = "testname1" };
-
-        AuthenticatePlayer(player, (result) =>
-        {
-            PlayerInfo = result;
-            LobbyController.Instance.SetPlayerName(result.playerName);
-        });
     }
+
 
     public async void GetPlayer(string color, Action<PlayerInfo> callback)
     {
@@ -76,6 +66,18 @@ public class ClientController : MonoBehaviour
                 Debug.Log(JsonConvert.SerializeObject(content));
                 callback?.Invoke(content);
             }, null);
+        });
+    }
+
+    public void AuthenticatePlayer(string playerName, Action callback)
+    {
+        string deviceId = SystemInfo.deviceUniqueIdentifier;
+        Player player = new Player() { GUID = deviceId, Name = playerName };
+
+        AuthenticatePlayer(player, (result) =>
+        {
+            PlayerInfo = result;
+            callback?.Invoke();
         });
     }
 
