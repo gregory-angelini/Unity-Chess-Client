@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 public class ClientController : MonoBehaviour
 {
     public static ClientController Instance;
-    [SerializeField] string host = "http://localhost:44334/api/";
+    [SerializeField] string host = "http://indiegma.com/api/";//"http://localhost:44334/api/"
 
 
     [HideInInspector]

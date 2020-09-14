@@ -177,7 +177,7 @@ public class Chess2DController : MonoBehaviour
                 else if (result.result == "stalemate")
                     StartCoroutine(Stalemate());
                 else if (result.result == "resign")
-                    Resign(ClientController.Instance.GameState.lastMoveColor);
+                    Resign(GetOpponentColor());
             }
             else
             {

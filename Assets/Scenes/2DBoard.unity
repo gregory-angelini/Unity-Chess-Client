@@ -2462,7 +2462,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a15e331f09b4db43a266c9864c82ea9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ShowTips: 1
+  ShowTips: 0
   bottomPlayerName: {fileID: 322726026}
   topPlayerName: {fileID: 2044037309}
 --- !u!1 &1090634938

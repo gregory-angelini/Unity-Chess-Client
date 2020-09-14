@@ -1683,7 +1683,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfeb62401ca69284e92fe63bc6c9db21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  host: http://localhost:44334/api/
+  host: http://indiegma.com/api/
 --- !u!4 &1825133479
 Transform:
   m_ObjectHideFlags: 0
